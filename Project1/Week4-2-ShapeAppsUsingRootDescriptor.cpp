@@ -18,7 +18,7 @@
 #include "../../Common/d3dApp.h"
 #include "../../Common/MathHelper.h"
 #include "../../Common/UploadBuffer.h"
-#include "../../Common/GeometryGenerator.h"
+#include "GeometryGenerator.h"
 #include "FrameResource.h"
 
 
