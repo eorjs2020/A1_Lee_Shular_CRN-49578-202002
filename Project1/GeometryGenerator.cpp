@@ -569,7 +569,7 @@ GeometryGenerator::MeshData GeometryGenerator::CreateCone(float bottomRadius, fl
 	return meshData;
 }
 
-GeometryGenerator::MeshData GeometryGenerator::CreatePyramid(float width, float height, float depth, uint32 numSubdivisions)
+GeometryGenerator::MeshData GeometryGenerator::CreateDiamond(float width, float height, float depth, uint32 numSubdivisions)
 {
 	MeshData meshData;
 
@@ -589,7 +589,6 @@ GeometryGenerator::MeshData GeometryGenerator::CreatePyramid(float width, float 
 	v[2] = Vertex(+w2, -h2, +d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 	v[3] = Vertex(-w2, -h2, +d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 
-
 	// Fill in the back face vertex data.
 	v[4] = Vertex(-w2, -h2, -d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
 	v[5] = Vertex(+0, +h2, +0, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
@@ -608,7 +607,7 @@ GeometryGenerator::MeshData GeometryGenerator::CreatePyramid(float width, float 
 	v[14] = Vertex(+0, +h2, +0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f);
 	v[15] = Vertex(-w2, -h2, +d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 
-
+	v[16] = Vertex(+0, -h2*3, +0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f);
 
 
 	meshData.Vertices.assign(&v[0], &v[23]);
@@ -619,20 +618,30 @@ GeometryGenerator::MeshData GeometryGenerator::CreatePyramid(float width, float 
 
 	uint32 i[36];
 
-	// Fill in the front face index data
-	i[0] = 0; i[1] = 1; i[2] = 2;
-	i[3] = 0; i[4] = 2; i[5] = 3;
-
 	// Fill in the back face index data
-	i[6] = 4; i[7] = 5; i[8] = 6;
+	i[0] = 4; i[1] = 5; i[2] = 6;
 
 
-	i[9] = 7; i[10] = 8; i[11] = 9;
+	i[3] = 7; i[4] = 8; i[5] = 9;
 
 	// Fill in the top face index data
-	i[12] = 11; i[13] = 12; i[14] = 10;
+	i[6] = 2; i[7] = 11; i[8] = 3;
 
-	i[15] = 14; i[16] = 13; i[17] = 15;
+	i[9] = 3; i[10] = 5; i[11] = 0;
+
+
+	
+	i[12] = 1; i[13] = 16; i[14] = 0;
+	
+	
+	i[15] = 2; i[16] = 16; i[17] = 1;
+
+	i[18] = 3; i[19] = 16; i[20] = 2;
+
+	i[21] = 0; i[22] = 16; i[23] = 3;
+
+
+
 	meshData.Indices32.assign(&i[0], &i[35]);
 
 	// Put a cap on the number of subdivisions.
@@ -643,7 +652,6 @@ GeometryGenerator::MeshData GeometryGenerator::CreatePyramid(float width, float 
 
 	return meshData;
 
-	return meshData;
 }
 
 void GeometryGenerator::BuildCylinderTopCap(float bottomRadius, float topRadius, float height,
