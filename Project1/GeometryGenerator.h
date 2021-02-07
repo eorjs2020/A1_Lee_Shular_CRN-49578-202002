@@ -102,7 +102,7 @@ public:
 	//Cone
 	MeshData CreateCone(float bottomRadius, float height, uint32 sliceCount, uint32 stackCount);
 
-	MeshData Create;
+	MeshData CreatePyramid(float width, float height, float depth, uint32 numSubdivisions);
 
 	///<summary>
 	/// Creates an mxn grid in the xz-plane with m rows and n columns, centered
