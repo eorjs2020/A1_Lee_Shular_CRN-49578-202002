@@ -109,6 +109,9 @@ public:
 	/// Creates a quad aligned with the screen.  This is useful for postprocessing and screen effects.
 	///</summary>
     MeshData CreateQuad(float x, float y, float w, float h, float depth);
+
+	MeshData CreateTorus(float radius, float innerRadius, uint32 numSubdivisions);
+
 	void Subdivide(MeshData& meshData);
 private:
 	

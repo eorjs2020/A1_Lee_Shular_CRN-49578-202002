@@ -210,7 +210,8 @@ GeometryGenerator::MeshData GeometryGenerator::CreateSphere(float radius, uint32
 
     return meshData;
 }
- 
+
+
 void GeometryGenerator::Subdivide(MeshData& meshData)
 {
 	// Save a copy of the input geometry.
@@ -546,6 +547,19 @@ void GeometryGenerator::BuildCylinderBottomCap(float bottomRadius, float topRadi
 		meshData.Indices32.push_back(baseIndex + i);
 		meshData.Indices32.push_back(baseIndex + i+1);
 	}
+
+}
+
+GeometryGenerator::MeshData GeometryGenerator::CreateTorus(float radius, float innerRadius, uint32 numSubdivisions)
+{
+	MeshData meshData;
+
+	numSubdivisions = std::min<uint32>(numSubdivisions, 6u);
+	
+	uint16_t* Indices;
+	
+	
+	return meshData;
 }
 
 GeometryGenerator::MeshData GeometryGenerator::CreateGrid(float width, float depth, uint32 m, uint32 n)
