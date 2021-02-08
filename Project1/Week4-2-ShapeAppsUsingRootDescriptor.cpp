@@ -1394,7 +1394,7 @@ void ShapesApp::BuildRenderItems()
 	auto boxRitem = std::make_unique<RenderItem>();
 
 	XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(0.0f, 0.5f, 0.0f));
-
+	XMStoreFloat4x4(&boxRitem->World, XMMatrixRotationRollPitchYaw(10, 10, 0.5));
 	boxRitem->ObjCBIndex = 0;
 
 	boxRitem->Geo = mGeometries["shapeGeo"].get();
@@ -1480,8 +1480,7 @@ void ShapesApp::BuildRenderItems()
 		XMMATRIX leftSphereWorld = XMMatrixTranslation(-5.0f, 3.5f, -10.0f + i * 5.0f);
 
 		XMMATRIX rightSphereWorld = XMMatrixTranslation(+5.0f, 3.5f, -10.0f + i * 5.0f);
-
-
+		
 
 		XMStoreFloat4x4(&leftCylRitem->World, rightCylWorld);
 
@@ -1496,8 +1495,6 @@ void ShapesApp::BuildRenderItems()
 		leftCylRitem->StartIndexLocation = leftCylRitem->Geo->DrawArgs["cylinder"].StartIndexLocation;
 
 		leftCylRitem->BaseVertexLocation = leftCylRitem->Geo->DrawArgs["cylinder"].BaseVertexLocation;
-
-
 
 		XMStoreFloat4x4(&rightCylRitem->World, leftCylWorld);
 
