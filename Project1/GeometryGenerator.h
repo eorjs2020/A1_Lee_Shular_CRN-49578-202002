@@ -105,6 +105,7 @@ public:
 
 	MeshData CreateDiamond(float width, float height, float depth, uint32 numSubdivisions);
 
+	MeshData CreateWedge(float width, float height, float depth, uint32 numSubdivisions);
 	MeshData CreatePrism(float width, float height, float topRadius, float bottmRadius);
 
 	MeshData CreateTorus(float sides, float cs_sides, float radius, float cs_radiu);
