@@ -108,7 +108,7 @@ public:
 	MeshData CreateWedge(float width, float height, float depth, uint32 numSubdivisions);
 	MeshData CreatePrism(float width, float height, float topRadius, float bottmRadius);
 
-	MeshData CreateTorus(float sides, float cs_sides, float radius, float cs_radiu);
+	MeshData CreateTorus(float outterRad, float innerRad, uint32 sliceCout, uint32 stackCount);
 	///<summary>
 	/// Creates an mxn grid in the xz-plane with m rows and n columns, centered
 	/// at the origin with the specified width and depth.

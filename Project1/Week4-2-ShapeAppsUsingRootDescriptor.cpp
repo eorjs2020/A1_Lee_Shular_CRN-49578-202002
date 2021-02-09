@@ -479,8 +479,7 @@ void ShapesApp::Draw(const GameTimer& gt)
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
 
 		D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
-
-
+	
 
 	// Clear the back buffer and depth buffer.
 
@@ -1048,11 +1047,11 @@ void ShapesApp::BuildShapeGeometry()
 	GeometryGenerator::MeshData grid = geoGen.CreateGrid(1.0f, 1.0f, 26, 26);
 
 	GeometryGenerator::MeshData sphere = geoGen.CreateSphere(1.0f, 20, 20);
-
+	
 	GeometryGenerator::MeshData cylinder = geoGen.CreateCylinder(1.0f, 1.0f, 1.0f, 20, 20);
 	
 	
-	//Todo
+	
 	GeometryGenerator::MeshData pyramid = geoGen.CreatePyramid(1.0f, 1.0f);
 	//
 	GeometryGenerator::MeshData cone = geoGen.CreateCone(1.0f, 1.0f, 20, 1);
@@ -1063,7 +1062,7 @@ void ShapesApp::BuildShapeGeometry()
 	//
 	GeometryGenerator::MeshData wedge = geoGen.CreateWedge(1.0f, 1.0f, 1.0f, 0);
 
-	
+	GeometryGenerator::MeshData torus = geoGen.CreateTorus(1.0f, 0.5f, 50, 50);
 
 
 
@@ -1097,6 +1096,7 @@ void ShapesApp::BuildShapeGeometry()
 
 	UINT wedgeVertexOffset = diamondVertexOffset + (UINT)diamond.Vertices.size();
 
+	UINT torusVertexOffset = wedgeVertexOffset + (UINT)wedge.Vertices.size();
 
 	// Cache the starting index for each object in the concatenated index buffer.
 
@@ -1118,7 +1118,7 @@ void ShapesApp::BuildShapeGeometry()
 
 	UINT wedgeIndexOffset = diamondIndexOffset + (UINT)diamond.Indices32.size();
 
-
+	UINT torusIndexOffset = wedgeIndexOffset + (UINT)wedge.Indices32.size();
 
 	// Define the SubmeshGeometry that cover different
 
@@ -1215,6 +1215,14 @@ void ShapesApp::BuildShapeGeometry()
 	prismSubmesh.BaseVertexLocation = prismVertexOffset;
 
 
+	SubmeshGeometry torusSubmesh;
+
+	torusSubmesh.IndexCount = (UINT)torus.Indices32.size();
+
+	torusSubmesh.StartIndexLocation = torusIndexOffset;
+
+	torusSubmesh.BaseVertexLocation = torusVertexOffset;
+
 	//
 
 	// Extract the vertex elements we are interested in and pack the
@@ -1243,7 +1251,9 @@ void ShapesApp::BuildShapeGeometry()
 
 		diamond.Vertices.size() +
 
-		wedge.Vertices.size();
+		wedge.Vertices.size() +
+
+		torus.Vertices.size();
 
 
 
@@ -1345,6 +1355,15 @@ void ShapesApp::BuildShapeGeometry()
 
 	}
 
+	for (size_t i = 0; i < torus.Vertices.size(); ++i, ++k)
+	{
+
+		vertices[k].Pos = torus.Vertices[i].Position;
+
+		vertices[k].Color = XMFLOAT4(DirectX::Colors::DarkOrange);
+
+	}
+
 
 	std::vector<std::uint16_t> indices;
 
@@ -1365,6 +1384,8 @@ void ShapesApp::BuildShapeGeometry()
 	indices.insert(indices.end(), std::begin(diamond.GetIndices16()), std::end(diamond.GetIndices16()));
 
 	indices.insert(indices.end(), std::begin(wedge.GetIndices16()), std::end(wedge.GetIndices16()));
+
+	indices.insert(indices.end(), std::begin(torus.GetIndices16()), std::end(torus.GetIndices16()));
 
 	const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
 
@@ -1430,6 +1451,8 @@ void ShapesApp::BuildShapeGeometry()
 
 	geo->DrawArgs["wedge"] = wedgeSubmesh;
 
+	geo->DrawArgs["torus"] = torusSubmesh;
+
 	mGeometries[geo->Name] = std::move(geo);
 
 }
@@ -1478,6 +1501,7 @@ void ShapesApp::BuildPSOs()
 
 	opaquePsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 
+	opaquePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 	opaquePsoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
 
 	opaquePsoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
@@ -1560,6 +1584,24 @@ void ShapesApp::BuildRenderItems()
 	mAllRitems.push_back(std::move(boxRitem));
 
 
+	
+	auto pyramidRitem = std::make_unique<RenderItem>();
+
+	XMStoreFloat4x4(&pyramidRitem->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(0.0f, 5.0f, 0.0f));
+	
+	pyramidRitem->ObjCBIndex = 1;
+
+	pyramidRitem->Geo = mGeometries["shapeGeo"].get();
+
+	pyramidRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+	pyramidRitem->IndexCount = pyramidRitem->Geo->DrawArgs["pyramid"].IndexCount;
+
+	pyramidRitem->StartIndexLocation = pyramidRitem->Geo->DrawArgs["pyramid"].StartIndexLocation;
+
+	pyramidRitem->BaseVertexLocation = pyramidRitem->Geo->DrawArgs["pyramid"].BaseVertexLocation;
+
+	mAllRitems.push_back(std::move(pyramidRitem));
 
 
 
@@ -1569,7 +1611,7 @@ void ShapesApp::BuildRenderItems()
 
 	XMStoreFloat4x4(&box2Ritem->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(-4.0f, 0.5f, -4.0f));
 	
-	box2Ritem->ObjCBIndex = 1;
+	box2Ritem->ObjCBIndex = 2;
 	
 	box2Ritem->Geo = mGeometries["shapeGeo"].get();
 
@@ -1589,7 +1631,7 @@ void ShapesApp::BuildRenderItems()
 
 	XMStoreFloat4x4(&gridRitem->World, XMMatrixScaling(25.0f, 25.0f, 25.0f) * XMMatrixTranslation(0.0f, 0.0f, 0.0f));
 	
-	gridRitem->ObjCBIndex = 2;
+	gridRitem->ObjCBIndex = 3;
 
 	gridRitem->Geo = mGeometries["shapeGeo"].get();
 
@@ -1603,9 +1645,25 @@ void ShapesApp::BuildRenderItems()
 
 	mAllRitems.push_back(std::move(gridRitem));
 
+	auto pyramidRitem = std::make_unique<RenderItem>();
 
+	XMStoreFloat4x4(&pyramidRitem->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(0.0f, 5.0f, 0.0f));
+	
+	pyramidRitem->ObjCBIndex = 1;
 
-	UINT objCBIndex = 3;
+	pyramidRitem->Geo = mGeometries["shapeGeo"].get();
+
+	pyramidRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+	pyramidRitem->IndexCount = pyramidRitem->Geo->DrawArgs["pyramid"].IndexCount;
+
+	pyramidRitem->StartIndexLocation = pyramidRitem->Geo->DrawArgs["pyramid"].StartIndexLocation;
+
+	pyramidRitem->BaseVertexLocation = pyramidRitem->Geo->DrawArgs["pyramid"].BaseVertexLocation;
+
+	mAllRitems.push_back(std::move(pyramidRitem));
+
+	UINT objCBIndex = 4;
 
 	for (int i = 0; i < 5; ++i)
 

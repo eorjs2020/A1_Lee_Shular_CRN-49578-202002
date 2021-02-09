@@ -752,74 +752,71 @@ GeometryGenerator::MeshData GeometryGenerator::CreatePrism(float width, float he
 	return meshData;
 }
 #define D_TO_R     (XM_PI/180)
-GeometryGenerator::MeshData GeometryGenerator::CreateTorus(float sides, float cs_sides, float radius, float cs_radius)
+GeometryGenerator::MeshData GeometryGenerator::CreateTorus(float outterRad, float innerRad, uint32 sliceCout, uint32 stackCount)
 {
-	
+	static const std::size_t num_segments = stackCount;
+	static const std::size_t num_rings = sliceCout;
+	static const std::size_t num_vertices = (num_rings + 1) * (num_segments + 1);
+	static const std::size_t num_indices = num_vertices * 2 + 2;
 	MeshData mesh;
-	std::vector<float> Vertices;
-	std::vector<float> TexCoord;
-	std::vector<float> Normals;
-	int angleincs = 360 / sides;
-	int cs_angleincs = 360 / cs_sides;
-	float currentradius, zval;
-	int i, j, nextrow;
-	int numIndices = (2 * sides + 4) * cs_sides;
-	for (j = 0; j <= 360; j += cs_angleincs)
-	{
-		currentradius = radius + (cs_radius * cosf(j * D_TO_R));
-		zval = cs_radius * sinf(j * D_TO_R);
+	const float pi = XM_PI;
+	const float r1 = outterRad;
+	const float r2 = innerRad;
+	std::vector<Vertex> vertices(num_vertices);
+	for (std::size_t i = 0, index = 0; i <= num_rings; ++i) {
+		for (std::size_t j = 0; j <= num_segments; ++j, ++index) {
+			// Compute texture coordinates (surface parameters)
+			// Note that u is added to j. This creates a spiral pattern, which
+			// allows us to draw the entire torus in one triangle strip without
+			// using degenerate triangles.
+			// (Yet we still need degenerate triangles to avoid texture
+			// wrap-around)
+			float u = float(i) / num_rings;
+			float v = (float(j) + u) / num_segments;
 
-		/* iterate sides: outer ring */
-		for (i = 0; i <= 360; i += angleincs)
-		{
-			Vertices.push_back(currentradius * cosf(i * D_TO_R));
-			Vertices.push_back(currentradius * sinf(i * D_TO_R));
-			Vertices.push_back(zval);
-			
-			float u = i / 360.;
-			float v = 2. * j / 360 - 1;
-			if (v < 0) v = -v;
+			// Compute angles
+			float u_angle = u * 2 * pi;
+			float v_angle = v * 2 * pi;
 
-			TexCoord.push_back(u);
-			TexCoord.push_back(v);			
+			// Position
+			float x = cos(u_angle) * (r1 + cos(v_angle) * r2);
+			float y = sin(u_angle) * (r1 + cos(v_angle) * r2);
+			float z = sin(v_angle) * r2;
+
+			// Normal vector
+			float nx = cos(u_angle) * cos(v_angle);
+			float ny = sin(u_angle) * cos(v_angle);
+			float nz = sin(v_angle);
+
+			vertices[index].Position = XMFLOAT3(x, y, z);
+			vertices[index].Normal = XMFLOAT3(nx, ny, nz);
+			vertices[index].TangentU = XMFLOAT3(1.0f, 0.0f, 0.0f);
+			vertices[index].TexC = XMFLOAT2(u, v);
 		}
 	}
-	int k = 0;
-	/* compute normals: loops are swapped */
-	for (i = 0, nextrow = (sides + 1) * 3, Vertices; i <= 360; i += angleincs, k += 3)
-	{	
-		std::vector<float> norm;
-		float xc = radius * cos(i * D_TO_R);
-		float yc = radius * sin(i * D_TO_R);
-		for (j = 0, k = 0; j <= 360; j += cs_angleincs )
-		{
-			norm.push_back(Vertices[k] - xc);
-			norm.push_back(Vertices[k + 1] - xc);
-			norm.push_back(Vertices[k + 2]);
-			vecNormalize(norm[k], norm[k+1], norm[k + 2]);
-			Normals.push_back(norm[k]); Normals.push_back(norm[k + 1]); Normals.push_back(norm[k + 2]);
-		}
-	}
-	int textcord = 0;
-	for (i = 0; i < Vertices.size(); i+=3, textcord +=2)
+	
+	uint32 ringVertexCount = num_rings + 1;
+
+	// Compute indices for each stack.
+	for (uint32 i = 0; i < num_segments; ++i)
 	{
-		mesh.Vertices.push_back(Vertex(Vertices[i], Vertices[i + 1], Vertices[i + 2],
-			1.0f, 0.0f, 0.0f, Normals[i], Normals[i + 1], Normals[i + 2],  TexCoord[textcord], TexCoord[textcord + 1]));
-	}
-		
-	for (i = 0, nextrow = sides + 1; i < cs_sides; i++)
-	{
-		/* outer ring */
-		for (j = 0; j < sides; j++)
+		for (uint32 j = 0; j < num_rings; ++j)
 		{
-			mesh.Indices32.push_back(i * nextrow + j);
-			mesh.Indices32.push_back((i + 1) * nextrow + j);
+			mesh.Indices32.push_back((i * ringVertexCount + j) % num_vertices);
+			mesh.Indices32.push_back(((i + 1) * ringVertexCount + j) % num_vertices);
+			mesh.Indices32.push_back(((i + 1) * ringVertexCount + j + 1) % num_vertices);
+
+			mesh.Indices32.push_back((i * ringVertexCount + j) % num_vertices);
+			mesh.Indices32.push_back(((i + 1) * ringVertexCount + j + 1) % num_vertices);
+			mesh.Indices32.push_back((i * ringVertexCount + j + 1) % num_vertices);
 		}
-		mesh.Indices32.push_back(i * nextrow + j);
-		mesh.Indices32.push_back(i * nextrow + j + nextrow);
-		
 	}
 
+	for (auto i = 0; i < vertices.size(); ++i)
+	{
+		mesh.Vertices.push_back(vertices[i]);
+	}
+	
 	return mesh;
 }
 
