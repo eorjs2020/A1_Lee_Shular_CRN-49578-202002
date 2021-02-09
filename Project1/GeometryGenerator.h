@@ -98,7 +98,17 @@ public:
 	// cylinders.  The slices and stacks parameters control the degree of tessellation.
 	///</summary>
     MeshData CreateCylinder(float bottomRadius, float topRadius, float height, uint32 sliceCount, uint32 stackCount);
+	
+	MeshData CreatePyramid(float width, float height);
+	//Cone
+	MeshData CreateCone(float bottomRadius, float height, uint32 sliceCount, uint32 stackCount);
 
+	MeshData CreateDiamond(float width, float height, float depth, uint32 numSubdivisions);
+
+	MeshData CreateWedge(float width, float height, float depth, uint32 numSubdivisions);
+	MeshData CreatePrism(float width, float height, float topRadius, float bottmRadius);
+
+	MeshData CreateTorus(float sides, float cs_sides, float radius, float cs_radiu);
 	///<summary>
 	/// Creates an mxn grid in the xz-plane with m rows and n columns, centered
 	/// at the origin with the specified width and depth.
@@ -111,6 +121,13 @@ public:
     MeshData CreateQuad(float x, float y, float w, float h, float depth);
 	void Subdivide(MeshData& meshData);
 private:
+	void vecNormalize(float nx, float ny, float nz)
+	{
+		float len = 1 / sqrt(nx * nx + ny * ny + nz * nz);
+		nx *= len;
+		ny *= len;
+		nz *= len;
+	}
 	
     Vertex MidPoint(const Vertex& v0, const Vertex& v1);
     void BuildCylinderTopCap(float bottomRadius, float topRadius, float height, uint32 sliceCount, uint32 stackCount, MeshData& meshData);
