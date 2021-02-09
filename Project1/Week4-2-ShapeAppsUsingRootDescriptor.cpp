@@ -1043,11 +1043,11 @@ void ShapesApp::BuildShapeGeometry()
 
 	GeometryGenerator geoGen;
 
-	GeometryGenerator::MeshData box = geoGen.CreateBox(1.0f, 1.0f, 1.0f, 0);
+	GeometryGenerator::MeshData box = geoGen.CreatePyramid(1.0f, 1.0f);
 
 	GeometryGenerator::MeshData grid = geoGen.CreateGrid(20.0f, 30.0f, 60, 40);
-
-	GeometryGenerator::MeshData sphere = geoGen.CreateSphere(0.5f, 20, 20);
+	
+	GeometryGenerator::MeshData sphere = geoGen.CreateTorus(100, 100, 1.0f, 0.5f);
 
 	GeometryGenerator::MeshData cylinder = geoGen.CreateCylinder(0.5f, 0.3f, 3.0f, 20, 20);
 
@@ -1418,7 +1418,6 @@ void ShapesApp::BuildRenderItems()
 	auto box2Ritem = std::make_unique<RenderItem>();
 
 	XMStoreFloat4x4(&box2Ritem->World, XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(-4.0f, 0.5f, -4.0f));
-
 	box2Ritem->ObjCBIndex = 1;
 
 	box2Ritem->Geo = mGeometries["shapeGeo"].get();
@@ -1430,7 +1429,7 @@ void ShapesApp::BuildRenderItems()
 	box2Ritem->StartIndexLocation = box2Ritem->Geo->DrawArgs["box"].StartIndexLocation;
 
 	box2Ritem->BaseVertexLocation = box2Ritem->Geo->DrawArgs["box"].BaseVertexLocation;
-
+	
 	mAllRitems.push_back(std::move(box2Ritem));
 
 
