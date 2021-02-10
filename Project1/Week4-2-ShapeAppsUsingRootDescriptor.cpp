@@ -1584,6 +1584,8 @@ void ShapesApp::BuildRenderItems()
 	// CatleWall;
 	//****************************************************
 	//XMMatrixRotationRollPitchYaw(0.0f, 1.0472f, 0.0f);
+
+	// DoorCatle
 	auto boxRitem = std::make_unique<RenderItem>();
 
 	XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(1.0f, 2.0f, 15.5f) * XMMatrixTranslation(12.0f, 4.0f, 0.0f));
@@ -1603,6 +1605,29 @@ void ShapesApp::BuildRenderItems()
 	mAllRitems.push_back(std::move(boxRitem));
 
 	
+	UINT objCBIndex = 33;
+	for (float i = -6.0f; i <= 6.0f; i += 2.0f)
+	{
+		auto smallboxRitem = std::make_unique<RenderItem>();
+
+		XMStoreFloat4x4(&smallboxRitem->World, XMMatrixTranslation(12.0f, 5.5f, i));
+
+		smallboxRitem->ObjCBIndex = objCBIndex++;
+
+		smallboxRitem->Geo = mGeometries["shapeGeo"].get();
+
+		smallboxRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+		smallboxRitem->IndexCount = smallboxRitem->Geo->DrawArgs["box"].IndexCount;
+
+		smallboxRitem->StartIndexLocation = smallboxRitem->Geo->DrawArgs["box"].StartIndexLocation;
+
+		smallboxRitem->BaseVertexLocation = smallboxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
+
+		mAllRitems.push_back(std::move(smallboxRitem));
+	}
+
+	
 	auto boxRitem2 = std::make_unique<RenderItem>();
 
 	XMStoreFloat4x4(&boxRitem2->World, XMMatrixScaling(1.0f, 5.0f, 14.5f)  * XMMatrixRotationRollPitchYaw(0.0f, 1.0472f, 0.0f) *XMMatrixTranslation(6.0f, 2.5f, -11.0f) );
@@ -1620,7 +1645,28 @@ void ShapesApp::BuildRenderItems()
 	boxRitem2->BaseVertexLocation = boxRitem2->Geo->DrawArgs["box"].BaseVertexLocation;
 
 	mAllRitems.push_back(std::move(boxRitem2));
+	
+	objCBIndex = 40;
+	for (float i = -6.0f; i <= 6.0f; i += 2.0f)
+	{
+		auto smallboxRitem2 = std::make_unique<RenderItem>();
 
+		XMStoreFloat4x4(&smallboxRitem2->World, XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixRotationRollPitchYaw(0.0f, 1.0472f, 0.0f) * XMMatrixTranslation(6.0f + (i * sinf(1.0472f)), 5.5f, -11.0f + (i * cosf(1.0472f))));
+
+		smallboxRitem2->ObjCBIndex = objCBIndex++;
+
+		smallboxRitem2->Geo = mGeometries["shapeGeo"].get();
+
+		smallboxRitem2->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+		smallboxRitem2->IndexCount = smallboxRitem2->Geo->DrawArgs["box"].IndexCount;
+
+		smallboxRitem2->StartIndexLocation = smallboxRitem2->Geo->DrawArgs["box"].StartIndexLocation;
+
+		smallboxRitem2->BaseVertexLocation = smallboxRitem2->Geo->DrawArgs["box"].BaseVertexLocation;
+
+		mAllRitems.push_back(std::move(smallboxRitem2));
+	}
 	
 	auto boxRitem3 = std::make_unique<RenderItem>();
 
@@ -1639,7 +1685,26 @@ void ShapesApp::BuildRenderItems()
 	boxRitem3->BaseVertexLocation = boxRitem3->Geo->DrawArgs["box"].BaseVertexLocation;
 
 	mAllRitems.push_back(std::move(boxRitem3));
+	for (float i = -6.0f; i <= 6.0f; i += 2.0f)
+	{
+		auto smallboxRitem2 = std::make_unique<RenderItem>();
 
+		XMStoreFloat4x4(&smallboxRitem2->World, XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixRotationRollPitchYaw(0.0f, -1.0472f, 0.0f) * XMMatrixTranslation(-6.0f + (i * sinf(-1.0472f)), 5.5f, -11.0f + (i * cosf(-1.0472f))));
+
+		smallboxRitem2->ObjCBIndex = objCBIndex++;
+
+		smallboxRitem2->Geo = mGeometries["shapeGeo"].get();
+
+		smallboxRitem2->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+		smallboxRitem2->IndexCount = smallboxRitem2->Geo->DrawArgs["box"].IndexCount;
+
+		smallboxRitem2->StartIndexLocation = smallboxRitem2->Geo->DrawArgs["box"].StartIndexLocation;
+
+		smallboxRitem2->BaseVertexLocation = smallboxRitem2->Geo->DrawArgs["box"].BaseVertexLocation;
+
+		mAllRitems.push_back(std::move(smallboxRitem2));
+	}
 	
 	auto boxRitem4 = std::make_unique<RenderItem>();
 
@@ -1658,7 +1723,26 @@ void ShapesApp::BuildRenderItems()
 	boxRitem4->BaseVertexLocation = boxRitem4->Geo->DrawArgs["box"].BaseVertexLocation;
 
 	mAllRitems.push_back(std::move(boxRitem4));
+	for (float i = -6.0f; i <= 6.0f; i += 2.0f)
+	{
+		auto smallboxRitem2 = std::make_unique<RenderItem>();
 
+		XMStoreFloat4x4(&smallboxRitem2->World, XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixTranslation(-12.0f, 5.5f, i));
+
+		smallboxRitem2->ObjCBIndex = objCBIndex++;
+
+		smallboxRitem2->Geo = mGeometries["shapeGeo"].get();
+
+		smallboxRitem2->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+		smallboxRitem2->IndexCount = smallboxRitem2->Geo->DrawArgs["box"].IndexCount;
+
+		smallboxRitem2->StartIndexLocation = smallboxRitem2->Geo->DrawArgs["box"].StartIndexLocation;
+
+		smallboxRitem2->BaseVertexLocation = smallboxRitem2->Geo->DrawArgs["box"].BaseVertexLocation;
+
+		mAllRitems.push_back(std::move(smallboxRitem2));
+	}
 	
 	auto boxRitem5 = std::make_unique<RenderItem>();
 
@@ -1677,7 +1761,27 @@ void ShapesApp::BuildRenderItems()
 	boxRitem5->BaseVertexLocation = boxRitem5->Geo->DrawArgs["box"].BaseVertexLocation;
 
 	mAllRitems.push_back(std::move(boxRitem5));
-	
+
+	for (float i = -6.0f; i <= 6.0f; i += 2.0f)
+	{
+		auto smallboxRitem2 = std::make_unique<RenderItem>();
+
+		XMStoreFloat4x4(&smallboxRitem2->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)* XMMatrixRotationRollPitchYaw(0.0f, 1.0472f, 0.0f)* XMMatrixTranslation(-6.0f + (i * sinf(1.0472f)), 5.5f, 11.0f + (i * cosf(1.0472f))));
+
+		smallboxRitem2->ObjCBIndex = objCBIndex++;
+
+		smallboxRitem2->Geo = mGeometries["shapeGeo"].get();
+
+		smallboxRitem2->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+		smallboxRitem2->IndexCount = smallboxRitem2->Geo->DrawArgs["box"].IndexCount;
+
+		smallboxRitem2->StartIndexLocation = smallboxRitem2->Geo->DrawArgs["box"].StartIndexLocation;
+
+		smallboxRitem2->BaseVertexLocation = smallboxRitem2->Geo->DrawArgs["box"].BaseVertexLocation;
+
+		mAllRitems.push_back(std::move(smallboxRitem2));
+	}
 	
 	auto boxRitem6 = std::make_unique<RenderItem>();
 
@@ -1696,6 +1800,27 @@ void ShapesApp::BuildRenderItems()
 	boxRitem6->BaseVertexLocation = boxRitem6->Geo->DrawArgs["box"].BaseVertexLocation;
 
 	mAllRitems.push_back(std::move(boxRitem6));
+
+	for (float i = -6.0f; i <= 6.0f; i += 2.0f)
+	{
+		auto smallboxRitem2 = std::make_unique<RenderItem>();
+
+		XMStoreFloat4x4(&smallboxRitem2->World, XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixRotationRollPitchYaw(0.0f, -1.0472f, 0.0f) * XMMatrixTranslation(6.0f + (i * sinf(-1.0472f)), 5.5f, 11.0f + (i * cosf(-1.0472f))));
+
+		smallboxRitem2->ObjCBIndex = objCBIndex++;
+
+		smallboxRitem2->Geo = mGeometries["shapeGeo"].get();
+
+		smallboxRitem2->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+		smallboxRitem2->IndexCount = smallboxRitem2->Geo->DrawArgs["box"].IndexCount;
+
+		smallboxRitem2->StartIndexLocation = smallboxRitem2->Geo->DrawArgs["box"].StartIndexLocation;
+
+		smallboxRitem2->BaseVertexLocation = smallboxRitem2->Geo->DrawArgs["box"].BaseVertexLocation;
+
+		mAllRitems.push_back(std::move(smallboxRitem2));
+	}
 	//****************************************************
 	
 	//Tower
