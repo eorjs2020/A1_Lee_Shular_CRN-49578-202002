@@ -1052,7 +1052,7 @@ void ShapesApp::BuildShapeGeometry()
 	
 	
 	
-	GeometryGenerator::MeshData pyramid = geoGen.CreatePyramid(1.0f, 1.0f, 0.5f);
+	GeometryGenerator::MeshData pyramid = geoGen.CreatePyramid(1.0f, 1.0f, 0.35f);
 	//
 	GeometryGenerator::MeshData cone = geoGen.CreateCone(1.0f, 1.0f, 20, 1);
 	//
@@ -1585,7 +1585,6 @@ void ShapesApp::BuildRenderItems()
 	//****************************************************
 	//XMMatrixRotationRollPitchYaw(0.0f, 1.0472f, 0.0f);
 
-	// DoorCatle
 	auto boxRitem = std::make_unique<RenderItem>();
 
 	XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(1.0f, 2.0f, 15.5f) * XMMatrixTranslation(12.0f, 4.0f, 0.0f));
@@ -1827,7 +1826,7 @@ void ShapesApp::BuildRenderItems()
 	//****************************************************
 	auto pyramidRitem = std::make_unique<RenderItem>();
 
-	XMStoreFloat4x4(&pyramidRitem->World, XMMatrixScaling(10.0f,10.0f, 10.0f)* XMMatrixRotationRollPitchYaw(0.0f, 0.785398f, 0.0f)* XMMatrixTranslation(0.0f, 0.5f, 0.0f));
+	XMStoreFloat4x4(&pyramidRitem->World, XMMatrixScaling(10.0f, 3.5f, 10.0f)* XMMatrixRotationRollPitchYaw(0.0f, 0.785398f, 0.0f)* XMMatrixTranslation(0.0f, 1.75f, 0.0f));
 
 	pyramidRitem->ObjCBIndex = 7;
 
@@ -1902,7 +1901,7 @@ void ShapesApp::BuildRenderItems()
 	
 	auto diamondRitem = std::make_unique<RenderItem>();
 
-	XMStoreFloat4x4(&diamondRitem->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)* XMMatrixRotationRollPitchYaw(0.0f, 0.785398f, 0.0f)* XMMatrixTranslation(4.0f, 4.0f, 4.0f));
+	XMStoreFloat4x4(&diamondRitem->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)* XMMatrixRotationRollPitchYaw(0.0f, 0.785398f, 0.0f)* XMMatrixTranslation(6.0f, 4.0f, 6.0f));
 
 	diamondRitem->ObjCBIndex = 11;
 
@@ -1920,7 +1919,7 @@ void ShapesApp::BuildRenderItems()
 
 	auto diamondRitem2 = std::make_unique<RenderItem>();
 
-	XMStoreFloat4x4(&diamondRitem2->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)* XMMatrixRotationRollPitchYaw(0.0f, 0.785398f, 0.0f)* XMMatrixTranslation(-4.0f, 4.0f, 4.0f));
+	XMStoreFloat4x4(&diamondRitem2->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)* XMMatrixRotationRollPitchYaw(0.0f, 0.785398f, 0.0f)* XMMatrixTranslation(-6.0f, 4.0f, 6.0f));
 
 	diamondRitem2->ObjCBIndex = 12;
 
@@ -1938,7 +1937,7 @@ void ShapesApp::BuildRenderItems()
 
 	auto diamondRitem3 = std::make_unique<RenderItem>();
 
-	XMStoreFloat4x4(&diamondRitem3->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)* XMMatrixRotationRollPitchYaw(0.0f, 0.785398f, 0.0f)* XMMatrixTranslation(4.0f, 4.0f, -4.0f));
+	XMStoreFloat4x4(&diamondRitem3->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)* XMMatrixRotationRollPitchYaw(0.0f, 0.785398f, 0.0f)* XMMatrixTranslation(6.0f, 4.0f, -6.0f));
 
 	diamondRitem3->ObjCBIndex = 13;
 
@@ -1956,7 +1955,7 @@ void ShapesApp::BuildRenderItems()
 
 	auto diamondRitem4 = std::make_unique<RenderItem>();
 
-	XMStoreFloat4x4(&diamondRitem4->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)* XMMatrixRotationRollPitchYaw(0.0f, 0.785398f, 0.0f)* XMMatrixTranslation(-4.0f, 4.0f, -4.0f));
+	XMStoreFloat4x4(&diamondRitem4->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)* XMMatrixRotationRollPitchYaw(0.0f, 0.785398f, 0.0f)* XMMatrixTranslation(-6.0f, 4.0f, -6.0f));
 
 	diamondRitem4->ObjCBIndex = 14;
 
