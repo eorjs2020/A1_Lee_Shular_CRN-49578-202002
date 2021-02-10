@@ -1052,7 +1052,7 @@ void ShapesApp::BuildShapeGeometry()
 	
 	
 	
-	GeometryGenerator::MeshData pyramid = geoGen.CreatePyramid(1.0f, 1.0f);
+	GeometryGenerator::MeshData pyramid = geoGen.CreatePyramid(1.0f, 1.0f, 0.5f);
 	//
 	GeometryGenerator::MeshData cone = geoGen.CreateCone(1.0f, 1.0f, 20, 1);
 	//
