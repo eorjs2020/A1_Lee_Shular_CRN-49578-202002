@@ -27,11 +27,14 @@
     <ClCompile Include="..\..\Common\MathHelper.cpp" />
     <ClCompile Include="FrameResource.cpp" />
     <ClCompile Include="GeometryGenerator.cpp" />
+    <ClCompile Include="TexColumnsApp.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Week4-1-ShapesAppUsingDescriptorTable.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Week4-2-ShapeAppsUsingRootDescriptor.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
