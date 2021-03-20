@@ -473,9 +473,9 @@ GeometryGenerator::MeshData GeometryGenerator::CreateCylinder(float bottomRadius
     return meshData;
 }
 
-GeometryGenerator::MeshData GeometryGenerator::CreatePyramid(float width, float height)
+GeometryGenerator::MeshData GeometryGenerator::CreatePyramid(float width, float height, float top_rad)
 {
-	return CreateCylinder(width, 0, height, 4, 1);
+	return CreateCylinder(width, top_rad, height, 4, 1);
 }
 
 GeometryGenerator::MeshData GeometryGenerator::CreateCone(float bottomRadius, float height, uint32 sliceCount, uint32 stackCount)

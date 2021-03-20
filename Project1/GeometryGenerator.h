@@ -99,7 +99,7 @@ public:
 	///</summary>
     MeshData CreateCylinder(float bottomRadius, float topRadius, float height, uint32 sliceCount, uint32 stackCount);
 	
-	MeshData CreatePyramid(float width, float height);
+	MeshData CreatePyramid(float width, float height, float top_rad);
 	//Cone
 	MeshData CreateCone(float bottomRadius, float height, uint32 sliceCount, uint32 stackCount);
 
