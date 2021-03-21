@@ -438,7 +438,7 @@ void TexColumnsApp::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.AmbientLight = { 0.25f, 0.25f, 0.35f, 1.0f };
 	//Eye light
 	mMainPassCB.Lights[0].Position = { 0.0f, 18.5f, 1.0f };
-	mMainPassCB.Lights[0].Strength = { 0.95f, 0.95f, 0.95f };
+	mMainPassCB.Lights[0].Strength = { 10.95f, 10.95f, 10.95f };
 	//diamonds around base of tower
 	mMainPassCB.Lights[1].Position = { 6.0f, 4.0f, 6.0f };
 	mMainPassCB.Lights[1].Strength = { 0.95f, 0.95f, 0.95f };
@@ -471,28 +471,77 @@ void TexColumnsApp::LoadTextures()
 {
 	auto bricksTex = std::make_unique<Texture>();
 	bricksTex->Name = "bricksTex";
-	bricksTex->Filename = L"Graphics Textures/Torus.dds";
+	bricksTex->Filename = L"Graphics Textures/red_brick.dds";
 	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
 		mCommandList.Get(), bricksTex->Filename.c_str(),
 		bricksTex->Resource, bricksTex->UploadHeap));
 
 	auto stoneTex = std::make_unique<Texture>();
 	stoneTex->Name = "stoneTex";
-	stoneTex->Filename = L"../../Textures/stone.dds";
+	stoneTex->Filename = L"Graphics Textures/base.dds";
 	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
 		mCommandList.Get(), stoneTex->Filename.c_str(),
 		stoneTex->Resource, stoneTex->UploadHeap));
 
-	auto tileTex = std::make_unique<Texture>();
-	tileTex->Name = "tileTex";
-	tileTex->Filename = L"../../Textures/tile.dds";
+	auto grassTex = std::make_unique<Texture>();
+	grassTex->Name = "grassTex";
+	grassTex->Filename = L"Graphics Textures/grass.dds";
 	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
-		mCommandList.Get(), tileTex->Filename.c_str(),
-		tileTex->Resource, tileTex->UploadHeap));
+		mCommandList.Get(), grassTex->Filename.c_str(),
+		grassTex->Resource, grassTex->UploadHeap));
+
+	auto roofTex = std::make_unique<Texture>();
+	roofTex->Name = "roofTex";
+	roofTex->Filename = L"Graphics Textures/cone_roof.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), roofTex->Filename.c_str(),
+		roofTex->Resource, roofTex->UploadHeap));
+
+	auto prismTex = std::make_unique<Texture>();
+	prismTex->Name = "prismTex";
+	prismTex->Filename = L"Graphics Textures/corner.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), prismTex->Filename.c_str(),
+		prismTex->Resource, prismTex->UploadHeap));
+
+	auto doorTex = std::make_unique<Texture>();
+	doorTex->Name = "doorTex";
+	doorTex->Filename = L"Graphics Textures/door.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), doorTex->Filename.c_str(),
+		doorTex->Resource, doorTex->UploadHeap));
+
+	auto glassTex = std::make_unique<Texture>();
+	glassTex->Name = "glassTex";
+	glassTex->Filename = L"Graphics Textures/glass.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), glassTex->Filename.c_str(),
+		glassTex->Resource, glassTex->UploadHeap));
+
+	auto ropeTex = std::make_unique<Texture>();
+	ropeTex->Name = "ropeTex";
+	ropeTex->Filename = L"Graphics Textures/rope.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), ropeTex->Filename.c_str(),
+		ropeTex->Resource, ropeTex->UploadHeap));
+
+	auto TorusTex = std::make_unique<Texture>();
+	TorusTex->Name = "TorusTex";
+	TorusTex->Filename = L"Graphics Textures/Torus.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), TorusTex->Filename.c_str(),
+		TorusTex->Resource, TorusTex->UploadHeap));
+
 
 	mTextures[bricksTex->Name] = std::move(bricksTex);
 	mTextures[stoneTex->Name] = std::move(stoneTex);
-	mTextures[tileTex->Name] = std::move(tileTex);
+	mTextures[grassTex->Name] = std::move(grassTex);
+	mTextures[roofTex->Name] = std::move(roofTex);
+	mTextures[prismTex->Name] = std::move(prismTex);
+	mTextures[doorTex->Name] = std::move(doorTex);
+	mTextures[glassTex->Name] = std::move(glassTex);
+	mTextures[ropeTex->Name] = std::move(ropeTex);
+	mTextures[TorusTex->Name] = std::move(TorusTex);
 }
 
 void TexColumnsApp::BuildRootSignature()
@@ -544,7 +593,7 @@ void TexColumnsApp::BuildDescriptorHeaps()
 	// Create the SRV heap.
 	//
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	srvHeapDesc.NumDescriptors = 3;
+	srvHeapDesc.NumDescriptors = 9;
 	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvDescriptorHeap)));
@@ -556,7 +605,13 @@ void TexColumnsApp::BuildDescriptorHeaps()
 
 	auto bricksTex = mTextures["bricksTex"]->Resource;
 	auto stoneTex = mTextures["stoneTex"]->Resource;
-	auto tileTex = mTextures["tileTex"]->Resource;
+	auto grassTex = mTextures["grassTex"]->Resource;
+	auto roofTex = mTextures["roofTex"]->Resource;
+	auto prismTex = mTextures["prismTex"]->Resource;
+	auto doorTex = mTextures["doorTex"]->Resource;
+	auto glassTex = mTextures["glassTex"]->Resource;
+	auto ropeTex = mTextures["ropeTex"]->Resource;
+	auto TorusTex = mTextures["TorusTex"]->Resource;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -577,9 +632,53 @@ void TexColumnsApp::BuildDescriptorHeaps()
 	// next descriptor
 	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
 
-	srvDesc.Format = tileTex->GetDesc().Format;
-	srvDesc.Texture2D.MipLevels = tileTex->GetDesc().MipLevels;
-	md3dDevice->CreateShaderResourceView(tileTex.Get(), &srvDesc, hDescriptor);
+	srvDesc.Format = grassTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = grassTex->GetDesc().MipLevels;
+	md3dDevice->CreateShaderResourceView(grassTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = roofTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = roofTex->GetDesc().MipLevels;
+	md3dDevice->CreateShaderResourceView(roofTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = prismTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = prismTex->GetDesc().MipLevels;
+	md3dDevice->CreateShaderResourceView(prismTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = doorTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = doorTex->GetDesc().MipLevels;
+	md3dDevice->CreateShaderResourceView(doorTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = glassTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = glassTex->GetDesc().MipLevels;
+	md3dDevice->CreateShaderResourceView(glassTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = ropeTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = ropeTex->GetDesc().MipLevels;
+	md3dDevice->CreateShaderResourceView(ropeTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = TorusTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = TorusTex->GetDesc().MipLevels;
+	md3dDevice->CreateShaderResourceView(TorusTex.Get(), &srvDesc, hDescriptor);
+
+
 }
 
 void TexColumnsApp::BuildShadersAndInputLayout()
