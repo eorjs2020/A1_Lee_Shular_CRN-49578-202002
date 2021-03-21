@@ -1175,7 +1175,7 @@ void TexColumnsApp::BuildMaterials()
 	roof0->DiffuseSrvHeapIndex = 3;
 	roof0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	roof0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
-	roof0->Roughness = 0.3f;
+	roof0->Roughness = 0.0f;
 
 	auto prism0 = std::make_unique<Material>();
 	prism0->Name = "prism0";
@@ -1199,7 +1199,8 @@ void TexColumnsApp::BuildMaterials()
 	glass0->DiffuseSrvHeapIndex = 6;
 	glass0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	glass0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
-	glass0->Roughness = 0.3f;
+	glass0->Roughness = 0.0f;
+	
 
 	auto rope0 = std::make_unique<Material>();
 	rope0->Name = "rope0";
@@ -1498,7 +1499,7 @@ void TexColumnsApp::BuildRenderItems()
 	pyramidRitem->ObjCBIndex = 7;
 
 	pyramidRitem->Geo = mGeometries["shapeGeo"].get();
-	pyramidRitem->Mat = mMaterials["bricks0"].get();
+	pyramidRitem->Mat = mMaterials["stone0"].get();
 	pyramidRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	pyramidRitem->IndexCount = pyramidRitem->Geo->DrawArgs["pyramid"].IndexCount;
@@ -1554,7 +1555,7 @@ void TexColumnsApp::BuildRenderItems()
 	coneRitem->ObjCBIndex = 10;
 
 	coneRitem->Geo = mGeometries["shapeGeo"].get();
-	coneRitem->Mat = mMaterials["bricks0"].get();
+	coneRitem->Mat = mMaterials["roof0"].get();
 	coneRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	coneRitem->IndexCount = coneRitem->Geo->DrawArgs["cone"].IndexCount;
@@ -1573,7 +1574,7 @@ void TexColumnsApp::BuildRenderItems()
 	diamondRitem->ObjCBIndex = 11;
 
 	diamondRitem->Geo = mGeometries["shapeGeo"].get();
-	diamondRitem->Mat = mMaterials["bricks0"].get();
+	diamondRitem->Mat = mMaterials["glass0"].get();
 	diamondRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	diamondRitem->IndexCount = diamondRitem->Geo->DrawArgs["diamond"].IndexCount;
@@ -1591,7 +1592,7 @@ void TexColumnsApp::BuildRenderItems()
 	diamondRitem2->ObjCBIndex = 12;
 
 	diamondRitem2->Geo = mGeometries["shapeGeo"].get();
-	diamondRitem2->Mat = mMaterials["bricks0"].get();
+	diamondRitem2->Mat = mMaterials["glass0"].get();
 	diamondRitem2->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	diamondRitem2->IndexCount = diamondRitem2->Geo->DrawArgs["diamond"].IndexCount;
@@ -1609,7 +1610,7 @@ void TexColumnsApp::BuildRenderItems()
 	diamondRitem3->ObjCBIndex = 13;
 
 	diamondRitem3->Geo = mGeometries["shapeGeo"].get();
-	diamondRitem3->Mat = mMaterials["bricks0"].get();
+	diamondRitem3->Mat = mMaterials["glass0"].get();
 	diamondRitem3->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	diamondRitem3->IndexCount = diamondRitem3->Geo->DrawArgs["diamond"].IndexCount;
@@ -1627,7 +1628,7 @@ void TexColumnsApp::BuildRenderItems()
 	diamondRitem4->ObjCBIndex = 14;
 
 	diamondRitem4->Geo = mGeometries["shapeGeo"].get();
-	diamondRitem4->Mat = mMaterials["bricks0"].get();
+	diamondRitem4->Mat = mMaterials["glass0"].get();
 	diamondRitem4->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	diamondRitem4->IndexCount = diamondRitem4->Geo->DrawArgs["diamond"].IndexCount;
@@ -1648,7 +1649,7 @@ void TexColumnsApp::BuildRenderItems()
 	prismRitem->ObjCBIndex = 15;
 
 	prismRitem->Geo = mGeometries["shapeGeo"].get();
-	prismRitem->Mat = mMaterials["bricks0"].get();
+	prismRitem->Mat = mMaterials["prism0"].get();
 	prismRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	prismRitem->IndexCount = prismRitem->Geo->DrawArgs["prism"].IndexCount;
@@ -1667,7 +1668,7 @@ void TexColumnsApp::BuildRenderItems()
 	sphereRitem->ObjCBIndex = 16;
 
 	sphereRitem->Geo = mGeometries["shapeGeo"].get();
-	sphereRitem->Mat = mMaterials["bricks0"].get();
+	sphereRitem->Mat = mMaterials["glass0"].get();
 	sphereRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	sphereRitem->IndexCount = sphereRitem->Geo->DrawArgs["sphere"].IndexCount;
@@ -1686,7 +1687,7 @@ void TexColumnsApp::BuildRenderItems()
 	prismRitem2->ObjCBIndex = 17;
 
 	prismRitem2->Geo = mGeometries["shapeGeo"].get();
-	prismRitem2->Mat = mMaterials["bricks0"].get();
+	prismRitem2->Mat = mMaterials["prism0"].get();
 	prismRitem2->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	prismRitem2->IndexCount = prismRitem2->Geo->DrawArgs["prism"].IndexCount;
@@ -1705,7 +1706,7 @@ void TexColumnsApp::BuildRenderItems()
 	sphereRitem2->ObjCBIndex = 18;
 
 	sphereRitem2->Geo = mGeometries["shapeGeo"].get();
-	sphereRitem2->Mat = mMaterials["bricks0"].get();
+	sphereRitem2->Mat = mMaterials["glass0"].get();
 	sphereRitem2->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	sphereRitem2->IndexCount = sphereRitem2->Geo->DrawArgs["sphere"].IndexCount;
@@ -1724,7 +1725,7 @@ void TexColumnsApp::BuildRenderItems()
 	prismRitem3->ObjCBIndex = 19;
 
 	prismRitem3->Geo = mGeometries["shapeGeo"].get();
-	prismRitem3->Mat = mMaterials["bricks0"].get();
+	prismRitem3->Mat = mMaterials["prism0"].get();
 	prismRitem3->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	prismRitem3->IndexCount = prismRitem3->Geo->DrawArgs["prism"].IndexCount;
@@ -1743,7 +1744,7 @@ void TexColumnsApp::BuildRenderItems()
 	sphereRitem3->ObjCBIndex = 20;
 
 	sphereRitem3->Geo = mGeometries["shapeGeo"].get();
-	sphereRitem3->Mat = mMaterials["bricks0"].get();
+	sphereRitem3->Mat = mMaterials["glass0"].get();
 	sphereRitem3->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	sphereRitem3->IndexCount = sphereRitem3->Geo->DrawArgs["sphere"].IndexCount;
@@ -1762,7 +1763,7 @@ void TexColumnsApp::BuildRenderItems()
 	prismRitem4->ObjCBIndex = 21;
 
 	prismRitem4->Geo = mGeometries["shapeGeo"].get();
-	prismRitem4->Mat = mMaterials["bricks0"].get();
+	prismRitem4->Mat = mMaterials["prism0"].get();
 	prismRitem4->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	prismRitem4->IndexCount = prismRitem4->Geo->DrawArgs["prism"].IndexCount;
@@ -1781,7 +1782,7 @@ void TexColumnsApp::BuildRenderItems()
 	sphereRitem4->ObjCBIndex = 22;
 
 	sphereRitem4->Geo = mGeometries["shapeGeo"].get();
-	sphereRitem4->Mat = mMaterials["bricks0"].get();
+	sphereRitem4->Mat = mMaterials["glass0"].get();
 	sphereRitem4->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	sphereRitem4->IndexCount = sphereRitem4->Geo->DrawArgs["sphere"].IndexCount;
@@ -1800,7 +1801,7 @@ void TexColumnsApp::BuildRenderItems()
 	prismRitem5->ObjCBIndex = 23;
 
 	prismRitem5->Geo = mGeometries["shapeGeo"].get();
-	prismRitem5->Mat = mMaterials["bricks0"].get();
+	prismRitem5->Mat = mMaterials["prism0"].get();
 	prismRitem5->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	prismRitem5->IndexCount = prismRitem5->Geo->DrawArgs["prism"].IndexCount;
@@ -1819,7 +1820,7 @@ void TexColumnsApp::BuildRenderItems()
 	sphereRitem5->ObjCBIndex = 24;
 
 	sphereRitem5->Geo = mGeometries["shapeGeo"].get();
-	sphereRitem5->Mat = mMaterials["bricks0"].get();
+	sphereRitem5->Mat = mMaterials["glass0"].get();
 	sphereRitem5->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	sphereRitem5->IndexCount = sphereRitem5->Geo->DrawArgs["sphere"].IndexCount;
@@ -1838,7 +1839,7 @@ void TexColumnsApp::BuildRenderItems()
 	prismRitem6->ObjCBIndex = 25;
 
 	prismRitem6->Geo = mGeometries["shapeGeo"].get();
-	prismRitem6->Mat = mMaterials["bricks0"].get();
+	prismRitem6->Mat = mMaterials["prism0"].get();
 	prismRitem6->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	prismRitem6->IndexCount = prismRitem6->Geo->DrawArgs["prism"].IndexCount;
@@ -1857,7 +1858,7 @@ void TexColumnsApp::BuildRenderItems()
 	sphereRitem6->ObjCBIndex = 26;
 
 	sphereRitem6->Geo = mGeometries["shapeGeo"].get();
-	sphereRitem6->Mat = mMaterials["bricks0"].get();
+	sphereRitem6->Mat = mMaterials["glass0"].get();
 	sphereRitem6->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	sphereRitem6->IndexCount = sphereRitem6->Geo->DrawArgs["sphere"].IndexCount;
@@ -1916,7 +1917,7 @@ void TexColumnsApp::BuildRenderItems()
 	cylinderRitem3->ObjCBIndex = 29;
 
 	cylinderRitem3->Geo = mGeometries["shapeGeo"].get();
-	cylinderRitem3->Mat = mMaterials["bricks0"].get();
+	cylinderRitem3->Mat = mMaterials["rope0"].get();
 	cylinderRitem3->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	cylinderRitem3->IndexCount = cylinderRitem3->Geo->DrawArgs["cylinder"].IndexCount;
@@ -1935,7 +1936,7 @@ void TexColumnsApp::BuildRenderItems()
 	cylinderRitem4->ObjCBIndex = 30;
 
 	cylinderRitem4->Geo = mGeometries["shapeGeo"].get();
-	cylinderRitem4->Mat = mMaterials["bricks0"].get();
+	cylinderRitem4->Mat = mMaterials["rope0"].get();
 	cylinderRitem4->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	cylinderRitem4->IndexCount = cylinderRitem4->Geo->DrawArgs["cylinder"].IndexCount;
@@ -1956,7 +1957,7 @@ void TexColumnsApp::BuildRenderItems()
 	torusRitem->ObjCBIndex = 31;
 
 	torusRitem->Geo = mGeometries["shapeGeo"].get();
-	torusRitem->Mat = mMaterials["bricks0"].get();
+	torusRitem->Mat = mMaterials["Torus0"].get();
 	torusRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	torusRitem->IndexCount = torusRitem->Geo->DrawArgs["torus"].IndexCount;
@@ -1975,7 +1976,7 @@ void TexColumnsApp::BuildRenderItems()
 	diamondRitem5->ObjCBIndex = 32;
 
 	diamondRitem5->Geo = mGeometries["shapeGeo"].get();
-	diamondRitem5->Mat = mMaterials["bricks0"].get();
+	diamondRitem5->Mat = mMaterials["glass0"].get();
 	diamondRitem5->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	diamondRitem5->IndexCount = diamondRitem5->Geo->DrawArgs["diamond"].IndexCount;
