@@ -1161,17 +1161,71 @@ void TexColumnsApp::BuildMaterials()
     stone0->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05f);
     stone0->Roughness = 0.3f;
  
-	auto tile0 = std::make_unique<Material>();
-	tile0->Name = "tile0";
-	tile0->MatCBIndex = 2;
-	tile0->DiffuseSrvHeapIndex = 2;
-	tile0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-    tile0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
-    tile0->Roughness = 0.3f;
+	auto grass0 = std::make_unique<Material>();
+	grass0->Name = "grass0";
+	grass0->MatCBIndex = 2;
+	grass0->DiffuseSrvHeapIndex = 2;
+	grass0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+    grass0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+    grass0->Roughness = 0.3f;
+
+	auto roof0 = std::make_unique<Material>();
+	roof0->Name = "roof0";
+	roof0->MatCBIndex = 3;
+	roof0->DiffuseSrvHeapIndex = 3;
+	roof0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	roof0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	roof0->Roughness = 0.3f;
+
+	auto prism0 = std::make_unique<Material>();
+	prism0->Name = "prism0";
+	prism0->MatCBIndex = 4;
+	prism0->DiffuseSrvHeapIndex = 4;
+	prism0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	prism0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	prism0->Roughness = 0.3f;
+
+	auto door0 = std::make_unique<Material>();
+	door0->Name = "door0";
+	door0->MatCBIndex = 5;
+	door0->DiffuseSrvHeapIndex = 5;
+	door0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	door0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	door0->Roughness = 0.3f;
+
+	auto glass0 = std::make_unique<Material>();
+	glass0->Name = "glass0";
+	glass0->MatCBIndex = 6;
+	glass0->DiffuseSrvHeapIndex = 6;
+	glass0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	glass0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	glass0->Roughness = 0.3f;
+
+	auto rope0 = std::make_unique<Material>();
+	rope0->Name = "rope0";
+	rope0->MatCBIndex = 7;
+	rope0->DiffuseSrvHeapIndex = 7;
+	rope0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	rope0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	rope0->Roughness = 0.3f;
+
+	auto Torus0 = std::make_unique<Material>();
+	Torus0->Name = "Torus0";
+	Torus0->MatCBIndex = 8;
+	Torus0->DiffuseSrvHeapIndex = 8;
+	Torus0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	Torus0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	Torus0->Roughness = 0.3f;
 	
 	mMaterials["bricks0"] = std::move(bricks0);
 	mMaterials["stone0"] = std::move(stone0);
-	mMaterials["tile0"] = std::move(tile0);
+	mMaterials["grass0"] = std::move(grass0);
+	mMaterials["roof0"] = std::move(roof0);
+	mMaterials["prism0"] = std::move(prism0);
+	mMaterials["door0"] = std::move(door0);
+	mMaterials["glass0"] = std::move(glass0);
+	mMaterials["rope0"] = std::move(rope0);
+	mMaterials["Torus0"] = std::move(Torus0);
 }
 
 void TexColumnsApp::BuildRenderItems()
@@ -1183,7 +1237,7 @@ void TexColumnsApp::BuildRenderItems()
 	gridRitem->ObjCBIndex = 0;
 
 	gridRitem->Geo = mGeometries["shapeGeo"].get();
-	gridRitem->Mat = mMaterials["bricks0"].get();
+	gridRitem->Mat = mMaterials["grass0"].get();
 	gridRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	gridRitem->IndexCount = gridRitem->Geo->DrawArgs["grid"].IndexCount;
