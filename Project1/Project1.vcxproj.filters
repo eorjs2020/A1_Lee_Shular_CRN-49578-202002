@@ -51,6 +51,27 @@
     <ClCompile Include="TexColumnsApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Week6-6-BlendApp-Subtractive.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Waves.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuWaves.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WavesCSApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Week7-0-FlagBillboardsApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Week7-1-TreeBillboardsApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Week7-2-TreeBillboardsApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\Camera.h">
@@ -81,6 +102,12 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="FrameResource.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Waves.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuWaves.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
