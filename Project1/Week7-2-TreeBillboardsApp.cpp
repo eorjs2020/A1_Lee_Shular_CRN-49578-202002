@@ -1657,7 +1657,7 @@ void CastleDesign::BuildMaterials()
 	stone0->DiffuseSrvHeapIndex = 3;
 	stone0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	stone0->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05f);
-	stone0->Roughness = 0.3f;
+	stone0->Roughness = 0.1f;
 
 	auto grass = std::make_unique<Material>();
 	grass->Name = "grass";
@@ -2303,7 +2303,7 @@ void CastleDesign::BuildRenderItems()
 
 	auto cylinderRitem3 = std::make_unique<RenderItem>();
 
-	XMStoreFloat4x4(&cylinderRitem3->World, XMMatrixScaling(0.1f, 4.0f, 0.1f) * XMMatrixRotationRollPitchYaw(0.0f, 0.0f, 0.785398f) * XMMatrixTranslation(13.0f, 1.5f, -1.5f));
+	XMStoreFloat4x4(&cylinderRitem3->World, XMMatrixScaling(0.1f, 4.0f, 0.1f) * XMMatrixRotationRollPitchYaw(0.0f, 0.0f, 0.785398f) * XMMatrixTranslation(13.5f, 1.5f, -1.0f));
 
 	cylinderRitem3->ObjCBIndex = 29;
 
@@ -2322,7 +2322,7 @@ void CastleDesign::BuildRenderItems()
 
 	auto cylinderRitem4 = std::make_unique<RenderItem>();
 
-	XMStoreFloat4x4(&cylinderRitem4->World, XMMatrixScaling(0.1f, 4.0f, 0.1f) * XMMatrixRotationRollPitchYaw(0.0f, 0.0f, 0.785398f) * XMMatrixTranslation(13.0f, 1.5f, 1.5f));
+	XMStoreFloat4x4(&cylinderRitem4->World, XMMatrixScaling(0.1f, 4.0f, 0.1f) * XMMatrixRotationRollPitchYaw(0.0f, 0.0f, 0.785398f) * XMMatrixTranslation(13.5f, 1.5f, 1.0f));
 
 	cylinderRitem4->ObjCBIndex = 30;
 
@@ -2540,6 +2540,64 @@ void CastleDesign::BuildRenderItems()
 	mRitemLayer[(int)RenderLayer::AlphaTestedTreeSprites].push_back(treeSpritesRitem.get());
 	mAllRitems.push_back(std::move(wavesRitem));
 	mAllRitems.push_back(std::move(treeSpritesRitem));
+
+	++objCBIndex;
+	for (auto i = 0; i < 4; ++i)
+	{
+		auto outsideBox = std::make_unique<RenderItem>();
+		switch (i)
+		{
+		case 0:
+			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(1.0f, 6.0f, 80.0f) * XMMatrixTranslation(-20.0f, -3.01f, 0.0f));
+			break;
+		case 1:
+			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(1.0f, 6.0f, 80.0f) * XMMatrixTranslation(60.0f, -3.01f, 0.0f));
+			break;
+		case 2:
+			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(80.0f, 6.0f, 1.0f) * XMMatrixTranslation(20.0f, -3.01f, 40.0f));
+			break;
+		case 3:
+			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(80.0f, 6.0f, 1.0f) * XMMatrixTranslation(20.0f, -3.01f, -40.0f));
+			break;
+		}
+		
+
+		outsideBox->ObjCBIndex = objCBIndex++;
+
+		outsideBox->Geo = mGeometries["shapeGeo"].get();
+		outsideBox->Mat = mMaterials["bricks0"].get();
+		outsideBox->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+		outsideBox->IndexCount = outsideBox->Geo->DrawArgs["box"].IndexCount;
+
+		outsideBox->StartIndexLocation = outsideBox->Geo->DrawArgs["box"].StartIndexLocation;
+
+		outsideBox->BaseVertexLocation = outsideBox->Geo->DrawArgs["box"].BaseVertexLocation;
+		mRitemLayer[(int)RenderLayer::AlphaTested].push_back(outsideBox.get());
+		mAllRitems.push_back(std::move(outsideBox));
+	}
+
+	XMMatrixRotationRollPitchYaw(0.0f, 1.0472f, 0.0f);
+
+	auto door = std::make_unique<RenderItem>();
+
+	XMStoreFloat4x4(&door->World, XMMatrixScaling(3.0f, 0.5f, 2.5f)* XMMatrixTranslation(13.5f, 0.0f, 0.0f));
+
+	door->ObjCBIndex = objCBIndex;
+
+	door->Geo = mGeometries["shapeGeo"].get();
+	door->Mat = mMaterials["bricks0"].get();
+	door->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+	door->IndexCount = door->Geo->DrawArgs["box"].IndexCount;
+
+	door->StartIndexLocation = door->Geo->DrawArgs["box"].StartIndexLocation;
+
+	door->BaseVertexLocation = door->Geo->DrawArgs["box"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(door.get());
+	mAllRitems.push_back(std::move(door));
+
+
 }
 
 void CastleDesign::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems)
