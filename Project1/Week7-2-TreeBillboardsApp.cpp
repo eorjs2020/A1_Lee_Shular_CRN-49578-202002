@@ -490,12 +490,31 @@ void CastleDesign::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.TotalTime = gt.TotalTime();
 	mMainPassCB.DeltaTime = gt.DeltaTime();
 	mMainPassCB.AmbientLight = { 0.25f, 0.25f, 0.35f, 1.0f };
-	mMainPassCB.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
-	mMainPassCB.Lights[0].Strength = { 0.6f, 0.6f, 0.6f };
-	mMainPassCB.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };
-	mMainPassCB.Lights[1].Strength = { 0.3f, 0.3f, 0.3f };
-	mMainPassCB.Lights[2].Direction = { 0.0f, -0.707f, -0.707f };
-	mMainPassCB.Lights[2].Strength = { 0.15f, 0.15f, 0.15f };
+	//Eye light
+	mMainPassCB.Lights[0].Position = { 0.0f, 18.5f, 1.0f };
+	mMainPassCB.Lights[0].Strength = { 10.95f, 10.95f, 10.95f };
+	//diamonds around base of tower
+	mMainPassCB.Lights[1].Position = { 6.0f, 4.0f, 6.0f };
+	mMainPassCB.Lights[1].Strength = { 0.95f, 0.95f, 0.95f };
+	mMainPassCB.Lights[2].Position = { -6.0f, 4.0f, 6.0f };
+	mMainPassCB.Lights[2].Strength = { 0.95f, 0.95f, 0.95f };
+	mMainPassCB.Lights[3].Position = { 6.0f, 4.0f, -6.0f };
+	mMainPassCB.Lights[3].Strength = { 0.95f, 0.95f, 0.95f };
+	mMainPassCB.Lights[4].Position = { -6.0f, 4.0f, -6.0f };
+	mMainPassCB.Lights[4].Strength = { 0.95f, 0.95f, 0.95f };
+	//sphere around wall 
+	mMainPassCB.Lights[5].Position = { 14.0f, 5.5f, -9.0f };
+	mMainPassCB.Lights[5].Strength = { 0.95f, 0.95f, 0.95f };
+	mMainPassCB.Lights[6].Position = { -14.0f, 5.5f, 9.0f };
+	mMainPassCB.Lights[6].Strength = { 0.95f, 0.95f, 0.95f };
+	mMainPassCB.Lights[7].Position = { -14.0f, 5.5f, -9.0f };
+	mMainPassCB.Lights[7].Strength = { 0.95f, 0.95f, 0.95f };
+	mMainPassCB.Lights[8].Position = { 14.0f, 5.5f, 9.0f };
+	mMainPassCB.Lights[8].Strength = { 0.95f, 0.95f, 0.95f };
+	mMainPassCB.Lights[9].Position = { 0.0f, 5.5f, 17.0f };
+	mMainPassCB.Lights[9].Strength = { 0.95f, 0.95f, 0.95f };
+	mMainPassCB.Lights[10].Position = { 0.0f, 5.5f, -17.0f };
+	mMainPassCB.Lights[10].Strength = { 0.95f, 0.95f, 0.95f };
 
 	auto currPassCB = mCurrFrameResource->PassCB.get();
 	currPassCB->CopyData(0, mMainPassCB);
@@ -556,13 +575,6 @@ void CastleDesign::LoadTextures()
 	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
 		mCommandList.Get(), fenceTex->Filename.c_str(),
 		fenceTex->Resource, fenceTex->UploadHeap));
-
-	auto treeArrayTex = std::make_unique<Texture>();
-	treeArrayTex->Name = "treeArrayTex";
-	treeArrayTex->Filename = L"../../Textures/treeArray.dds";
-	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
-		mCommandList.Get(), treeArrayTex->Filename.c_str(),
-		treeArrayTex->Resource, treeArrayTex->UploadHeap));
 	
 	auto bricksTex = std::make_unique<Texture>();
 	bricksTex->Name = "bricksTex";
@@ -627,8 +639,15 @@ void CastleDesign::LoadTextures()
 		mCommandList.Get(), TorusTex->Filename.c_str(),
 		TorusTex->Resource, TorusTex->UploadHeap));
 
+	auto treeArrayTex = std::make_unique<Texture>();
+	treeArrayTex->Name = "treeArrayTex";
+	treeArrayTex->Filename = L"../../Textures/treeArray.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), treeArrayTex->Filename.c_str(),
+		treeArrayTex->Resource, treeArrayTex->UploadHeap));
 
-
+	mTextures[waterTex->Name] = std::move(waterTex);
+	mTextures[fenceTex->Name] = std::move(fenceTex);	
 	mTextures[bricksTex->Name] = std::move(bricksTex);
 	mTextures[stoneTex->Name] = std::move(stoneTex);
 	mTextures[grassTex->Name] = std::move(grassTex);
@@ -637,10 +656,9 @@ void CastleDesign::LoadTextures()
 	mTextures[doorTex->Name] = std::move(doorTex);
 	mTextures[glassTex->Name] = std::move(glassTex);
 	mTextures[ropeTex->Name] = std::move(ropeTex);
-	mTextures[TorusTex->Name] = std::move(TorusTex);	
-	mTextures[waterTex->Name] = std::move(waterTex);
-	mTextures[fenceTex->Name] = std::move(fenceTex);
-	mTextures[treeArrayTex->Name] = std::move(treeArrayTex);
+	mTextures[TorusTex->Name] = std::move(TorusTex);
+	mTextures[treeArrayTex->Name] = std::move(treeArrayTex);	
+
 }
 
 void CastleDesign::BuildRootSignature()
@@ -699,13 +717,11 @@ void CastleDesign::BuildDescriptorHeaps()
 	//
 	CD3DX12_CPU_DESCRIPTOR_HANDLE hDescriptor(mSrvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
-	auto grassTex = mTextures["grassTex"]->Resource;
 	auto waterTex = mTextures["waterTex"]->Resource;
 	auto fenceTex = mTextures["fenceTex"]->Resource;
-	
-
 	auto bricksTex = mTextures["bricksTex"]->Resource;
-	auto stoneTex = mTextures["stoneTex"]->Resource;	
+	auto stoneTex = mTextures["stoneTex"]->Resource;
+	auto grassTex = mTextures["grassTex"]->Resource;	
 	auto roofTex = mTextures["roofTex"]->Resource;
 	auto prismTex = mTextures["prismTex"]->Resource;
 	auto doorTex = mTextures["doorTex"]->Resource;
@@ -713,32 +729,86 @@ void CastleDesign::BuildDescriptorHeaps()
 	auto ropeTex = mTextures["ropeTex"]->Resource;
 	auto TorusTex = mTextures["TorusTex"]->Resource;
 	auto treeArrayTex = mTextures["treeArrayTex"]->Resource;
+
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Format = grassTex->GetDesc().Format;
+	srvDesc.Format = waterTex->GetDesc().Format;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MostDetailedMip = 0;
-	srvDesc.Texture2D.MipLevels = -1;
-	md3dDevice->CreateShaderResourceView(grassTex.Get(), &srvDesc, hDescriptor);
-
-	// next descriptor
-	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
-
-	srvDesc.Format = waterTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = waterTex->GetDesc().MipLevels;
+	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 	md3dDevice->CreateShaderResourceView(waterTex.Get(), &srvDesc, hDescriptor);
 
 	// next descriptor
 	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
 
 	srvDesc.Format = fenceTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = fenceTex->GetDesc().MipLevels;
 	md3dDevice->CreateShaderResourceView(fenceTex.Get(), &srvDesc, hDescriptor);
 
 	// next descriptor
 	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
 
 	srvDesc.Format = bricksTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = bricksTex->GetDesc().MipLevels;
 	md3dDevice->CreateShaderResourceView(bricksTex.Get(), &srvDesc, hDescriptor);
 
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = stoneTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = stoneTex->GetDesc().MipLevels;
+	md3dDevice->CreateShaderResourceView(stoneTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = grassTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = grassTex->GetDesc().MipLevels;
+	md3dDevice->CreateShaderResourceView(grassTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = roofTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = roofTex->GetDesc().MipLevels;
+	md3dDevice->CreateShaderResourceView(roofTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = prismTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = prismTex->GetDesc().MipLevels;
+	md3dDevice->CreateShaderResourceView(prismTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = doorTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = doorTex->GetDesc().MipLevels;
+	md3dDevice->CreateShaderResourceView(doorTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = glassTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = glassTex->GetDesc().MipLevels;
+	md3dDevice->CreateShaderResourceView(glassTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = ropeTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = ropeTex->GetDesc().MipLevels;
+	md3dDevice->CreateShaderResourceView(ropeTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = TorusTex->GetDesc().Format;
+	srvDesc.Texture2D.MipLevels = TorusTex->GetDesc().MipLevels;
+	md3dDevice->CreateShaderResourceView(TorusTex.Get(), &srvDesc, hDescriptor);
+	
 	// next descriptor
 	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
 
@@ -746,7 +816,7 @@ void CastleDesign::BuildDescriptorHeaps()
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
 	srvDesc.Format = treeArrayTex->GetDesc().Format;
 	srvDesc.Texture2DArray.MostDetailedMip = 0;
-	srvDesc.Texture2DArray.MipLevels = -1;
+	srvDesc.Texture2DArray.MipLevels = treeArrayTex->GetDesc().MipLevels;
 	srvDesc.Texture2DArray.FirstArraySlice = 0;
 	srvDesc.Texture2DArray.ArraySize = treeArrayTex->GetDesc().DepthOrArraySize;
 	md3dDevice->CreateShaderResourceView(treeArrayTex.Get(), &srvDesc, hDescriptor);
@@ -1531,80 +1601,77 @@ void CastleDesign::BuildFrameResources()
 
 void CastleDesign::BuildMaterials()
 {	
-	auto grass = std::make_unique<Material>();
-	grass->Name = "grass";
-	grass->MatCBIndex = 0;
-	grass->DiffuseSrvHeapIndex = 0;
-	grass->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	grass->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
-	grass->Roughness = 0.125f;
-
 	// This is not a good water material definition, but we do not have all the rendering
 	// tools we need (transparency, environment reflection), so we fake it for now.
 	auto water = std::make_unique<Material>();
 	water->Name = "water";
-	water->MatCBIndex = 1;
-	water->DiffuseSrvHeapIndex = 1;
+	water->MatCBIndex = 0;
+	water->DiffuseSrvHeapIndex = 0;
 	water->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f);
 	water->FresnelR0 = XMFLOAT3(0.1f, 0.1f, 0.1f);
 	water->Roughness = 0.0f;
 
 	auto wirefence = std::make_unique<Material>();
 	wirefence->Name = "wirefence";
-	wirefence->MatCBIndex = 2;
-	wirefence->DiffuseSrvHeapIndex = 2;
+	wirefence->MatCBIndex = 1;
+	wirefence->DiffuseSrvHeapIndex = 1;
 	wirefence->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	wirefence->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
 	wirefence->Roughness = 0.25f;
 
-	
-
-
 	auto bricks0 = std::make_unique<Material>();
 	bricks0->Name = "bricks0";
-	bricks0->MatCBIndex = 4;
-	bricks0->DiffuseSrvHeapIndex = 4;
+	bricks0->MatCBIndex = 2;
+	bricks0->DiffuseSrvHeapIndex = 2;
 	bricks0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	bricks0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
 	bricks0->Roughness = 0.1f;
 
 	auto stone0 = std::make_unique<Material>();
 	stone0->Name = "stone0";
-	stone0->MatCBIndex = 5;
-	stone0->DiffuseSrvHeapIndex = 5;
+	stone0->MatCBIndex = 3;
+	stone0->DiffuseSrvHeapIndex = 3;
 	stone0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	stone0->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05f);
 	stone0->Roughness = 0.3f;
 
+	auto grass = std::make_unique<Material>();
+	grass->Name = "grass";
+	grass->MatCBIndex = 4;
+	grass->DiffuseSrvHeapIndex = 4;
+	grass->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	grass->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
+	grass->Roughness = 0.125f;
+
 
 	auto roof0 = std::make_unique<Material>();
 	roof0->Name = "roof0";
-	roof0->MatCBIndex = 6;
-	roof0->DiffuseSrvHeapIndex = 7;
+	roof0->MatCBIndex = 5;
+	roof0->DiffuseSrvHeapIndex = 5;
 	roof0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	roof0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
 	roof0->Roughness = 0.0f;
 
 	auto prism0 = std::make_unique<Material>();
 	prism0->Name = "prism0";
-	prism0->MatCBIndex = 7;
-	prism0->DiffuseSrvHeapIndex = 8;
+	prism0->MatCBIndex = 6;
+	prism0->DiffuseSrvHeapIndex = 6;
 	prism0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	prism0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
 	prism0->Roughness = 0.3f;
 
 	auto door0 = std::make_unique<Material>();
 	door0->Name = "door0";
-	door0->MatCBIndex = 8;
-	door0->DiffuseSrvHeapIndex = 9;
+	door0->MatCBIndex = 7;
+	door0->DiffuseSrvHeapIndex = 7;
 	door0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	door0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
 	door0->Roughness = 0.3f;
 
 	auto glass0 = std::make_unique<Material>();
 	glass0->Name = "glass0";
-	glass0->MatCBIndex = 9;
-	glass0->DiffuseSrvHeapIndex = 10;
+	glass0->MatCBIndex = 8;
+	glass0->DiffuseSrvHeapIndex = 8;
 	glass0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	glass0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
 	glass0->Roughness = 0.0f;
@@ -1612,35 +1679,33 @@ void CastleDesign::BuildMaterials()
 
 	auto rope0 = std::make_unique<Material>();
 	rope0->Name = "rope0";
-	rope0->MatCBIndex = 10;
-	rope0->DiffuseSrvHeapIndex = 11;
+	rope0->MatCBIndex = 9;
+	rope0->DiffuseSrvHeapIndex = 9;
 	rope0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	rope0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
 	rope0->Roughness = 0.3f;
 
 	auto Torus0 = std::make_unique<Material>();
 	Torus0->Name = "Torus0";
-	Torus0->MatCBIndex = 11;
-	Torus0->DiffuseSrvHeapIndex = 12;
+	Torus0->MatCBIndex = 10;
+	Torus0->DiffuseSrvHeapIndex = 10;
 	Torus0->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	Torus0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
 	Torus0->Roughness = 0.3f;
 
-
 	auto treeSprites = std::make_unique<Material>();
 	treeSprites->Name = "treeSprites";
-	treeSprites->MatCBIndex = 3;
-	treeSprites->DiffuseSrvHeapIndex = 3;
+	treeSprites->MatCBIndex = 11;
+	treeSprites->DiffuseSrvHeapIndex = 11;
 	treeSprites->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	treeSprites->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
 	treeSprites->Roughness = 0.125f;
-
-	mMaterials["grass"] = std::move(grass);
+	
 	mMaterials["water"] = std::move(water);
 	mMaterials["wirefence"] = std::move(wirefence);
-	
 	mMaterials["bricks0"] = std::move(bricks0);
 	mMaterials["stone0"] = std::move(stone0);
+	mMaterials["grass"] = std::move(grass);
 	mMaterials["roof0"] = std::move(roof0);
 	mMaterials["prism0"] = std::move(prism0);
 	mMaterials["door0"] = std::move(door0);
@@ -1648,6 +1713,7 @@ void CastleDesign::BuildMaterials()
 	mMaterials["rope0"] = std::move(rope0);
 	mMaterials["Torus0"] = std::move(Torus0);
 	mMaterials["treeSprites"] = std::move(treeSprites);
+	
 }
 
 void CastleDesign::BuildRenderItems()
@@ -1665,15 +1731,15 @@ void CastleDesign::BuildRenderItems()
 	gridRitem->BaseVertexLocation = gridRitem->Geo->DrawArgs["grid"].BaseVertexLocation;
 
 	mRitemLayer[(int)RenderLayer::Opaque].push_back(gridRitem.get());
-	mAllRitems.push_back(std::move(gridRitem));
+
 
 
 	auto wavesRitem = std::make_unique<RenderItem>();
 	wavesRitem->World = MathHelper::Identity4x4();
 	XMStoreFloat4x4(&wavesRitem->TexTransform, XMMatrixScaling(5.0f, 5.0f, 1.0f));
 	wavesRitem->ObjCBIndex = 1;
-	wavesRitem->Geo = mGeometries["waterGeo"].get();
 	wavesRitem->Mat = mMaterials["water"].get();
+	wavesRitem->Geo = mGeometries["waterGeo"].get();
 	wavesRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	wavesRitem->IndexCount = wavesRitem->Geo->DrawArgs["grid"].IndexCount;
 	wavesRitem->StartIndexLocation = wavesRitem->Geo->DrawArgs["grid"].StartIndexLocation;
@@ -1681,13 +1747,14 @@ void CastleDesign::BuildRenderItems()
 
 	mWavesRitem = wavesRitem.get();
 
-	mRitemLayer[(int)RenderLayer::Transparent].push_back(wavesRitem.get());
 
+	mRitemLayer[(int)RenderLayer::Transparent].push_back(wavesRitem.get());
+		
 
 	auto treeSpritesRitem = std::make_unique<RenderItem>();
 	treeSpritesRitem->World = MathHelper::Identity4x4();
 	treeSpritesRitem->ObjCBIndex = 2;
-	treeSpritesRitem->Mat = mMaterials["bricks0"].get();
+	treeSpritesRitem->Mat = mMaterials["treeSprites"].get();
 	treeSpritesRitem->Geo = mGeometries["treeSpritesGeo"].get();
 	//step2
 	treeSpritesRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
@@ -1697,11 +1764,7 @@ void CastleDesign::BuildRenderItems()
 
 	mRitemLayer[(int)RenderLayer::AlphaTestedTreeSprites].push_back(treeSpritesRitem.get());
 
-
-	mAllRitems.push_back(std::move(wavesRitem));
 	
-
-	mAllRitems.push_back(std::move(treeSpritesRitem));
 
 	auto boxRitem = std::make_unique<RenderItem>();
 
@@ -1710,7 +1773,7 @@ void CastleDesign::BuildRenderItems()
 	boxRitem->ObjCBIndex = 3;
 	
 	boxRitem->Geo = mGeometries["shapeGeo"].get();
-	boxRitem->Mat = mMaterials["treeSprites"].get();
+	boxRitem->Mat = mMaterials["Torus0"].get();
 	boxRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	boxRitem->IndexCount = boxRitem->Geo->DrawArgs["box"].IndexCount;
@@ -1719,6 +1782,10 @@ void CastleDesign::BuildRenderItems()
 
 	boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
 	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(boxRitem.get());
+
+	mAllRitems.push_back(std::move(gridRitem));
+	mAllRitems.push_back(std::move(wavesRitem));
+	mAllRitems.push_back(std::move(treeSpritesRitem));
 	mAllRitems.push_back(std::move(boxRitem));
 
 
