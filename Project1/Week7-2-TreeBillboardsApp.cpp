@@ -1437,19 +1437,30 @@ void CastleDesign::BuildTreeSpritesGeometry()
 
 	static const int treeCount = 16;
 	std::array<TreeSpriteVertex, 16> vertices;
-	for(UINT i = 0; i < treeCount; ++i)
+	for(UINT i = 0; i < treeCount/2; ++i)
 	{
-		float x = MathHelper::RandF(10.0f, 45.0f);
-		float z = MathHelper::RandF(0.0f, 45.0f);
-		float y = 0.0f;
+		float x = MathHelper::RandF(-15, 15);
+		float z = MathHelper::RandF(23.0f, 35.0f);
+		float y = 1.5f;
 
 		// Move tree slightly above land height.
-		y += 8.0f;
+		y += 1.0f;
 
 		vertices[i].Pos = XMFLOAT3(x, y, z);
-		vertices[i].Size = XMFLOAT2(20.0f, 20.0f);
+		vertices[i].Size = XMFLOAT2(5.0f, 5.0f);
 	}
+	for (UINT i = treeCount / 2; i < treeCount; ++i)
+	{
+		float x = MathHelper::RandF(-15, 15);
+		float z = MathHelper::RandF(-23.0f, -35.0f);
+		float y = 1.5f;
 
+		// Move tree slightly above land height.
+		y += 1.0f;
+
+		vertices[i].Pos = XMFLOAT3(x, y, z);
+		vertices[i].Size = XMFLOAT2(5.0f, 5.0f);
+	}
 	std::array<std::uint16_t, 16> indices =
 	{
 		0, 1, 2, 3, 4, 5, 6, 7,
