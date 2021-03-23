@@ -149,6 +149,7 @@ private:
     float mRadius = 50.0f;
 
     POINT mLastMousePos;
+	bool mLava; 
 };
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
@@ -260,6 +261,14 @@ void CastleDesign::Update(const GameTimer& gt)
 
 void CastleDesign::Draw(const GameTimer& gt)
 {
+	if (mLava) {
+		mAllRitems[75]->Mat = mMaterials["water"].get();
+	}
+	else {
+		mAllRitems[75]->Mat = mMaterials["Torus0"].get();
+	}
+
+
     auto cmdListAlloc = mCurrFrameResource->CmdListAlloc;
 
     // Reuse the memory associated with command recording.
@@ -374,6 +383,11 @@ void CastleDesign::OnMouseMove(WPARAM btnState, int x, int y)
  
 void CastleDesign::OnKeyboardInput(const GameTimer& gt)
 {
+	if (GetAsyncKeyState('1') & 0x8000)
+		mLava = true;
+
+	else
+		mLava = false;
 }
  
 void CastleDesign::UpdateCamera(const GameTimer& gt)
