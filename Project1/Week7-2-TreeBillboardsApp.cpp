@@ -150,6 +150,8 @@ private:
 
     POINT mLastMousePos;
 	bool mLava; 
+	int timer = 0;
+	bool timercheck;
 };
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
@@ -235,9 +237,9 @@ void CastleDesign::OnResize()
 
 void CastleDesign::Update(const GameTimer& gt)
 {
-    OnKeyboardInput(gt);
-	UpdateCamera(gt);
 
+	OnKeyboardInput(gt);
+	UpdateCamera(gt);
     // Cycle through the circular frame resource array.
     mCurrFrameResourceIndex = (mCurrFrameResourceIndex + 1) % gNumFrameResources;
     mCurrFrameResource = mFrameResources[mCurrFrameResourceIndex].get();
@@ -257,6 +259,7 @@ void CastleDesign::Update(const GameTimer& gt)
 	UpdateMaterialCBs(gt);
 	UpdateMainPassCB(gt);
     UpdateWaves(gt);
+
 }
 
 void CastleDesign::Draw(const GameTimer& gt)
@@ -504,31 +507,33 @@ void CastleDesign::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.TotalTime = gt.TotalTime();
 	mMainPassCB.DeltaTime = gt.DeltaTime();
 	mMainPassCB.AmbientLight = { 0.25f, 0.25f, 0.35f, 1.0f };
+	//Lava Light
+	mMainPassCB.Lights[0].Position = { 0.0f, 0.0f, 0.0f };
+	mMainPassCB.Lights[0].Direction = { 0.0f, -5.0f, 0.0f };
+	//mMainPassCB.Lights[0].Strength = { 0.0f, 0.0f, 0.0f };
+	mMainPassCB.Lights[0].Strength = { 0.30f, 0.1f, 0.1f };
 	//Eye light
-	mMainPassCB.Lights[0].Position = { 0.0f, 18.5f, 1.0f };
-	mMainPassCB.Lights[0].Strength = { 10.95f, 10.95f, 10.95f };
+	mMainPassCB.Lights[1].Position = { 0.0f, 15.0f, 0.0f };
+	mMainPassCB.Lights[1].Strength = { 1.65f, 0.1f, 0.0f };
 	//diamonds around base of tower
-	mMainPassCB.Lights[1].Position = { 6.0f, 4.0f, 6.0f };
-	mMainPassCB.Lights[1].Strength = { 0.95f, 0.95f, 0.95f };
-	mMainPassCB.Lights[2].Position = { -6.0f, 4.0f, 6.0f };
-	mMainPassCB.Lights[2].Strength = { 0.95f, 0.95f, 0.95f };
-	mMainPassCB.Lights[3].Position = { 6.0f, 4.0f, -6.0f };
-	mMainPassCB.Lights[3].Strength = { 0.95f, 0.95f, 0.95f };
-	mMainPassCB.Lights[4].Position = { -6.0f, 4.0f, -6.0f };
-	mMainPassCB.Lights[4].Strength = { 0.95f, 0.95f, 0.95f };
+	mMainPassCB.Lights[2].Position = { 6.5f, 2.0f, 6.5f };
+	mMainPassCB.Lights[3].Position = { -6.5f, 2.0f, 6.5f };
+	mMainPassCB.Lights[4].Position = { 6.5f, 2.0f, -6.5f };
+	mMainPassCB.Lights[5].Position = { -6.5f, 2.0f, -6.5f };
+
 	//sphere around wall 
-	mMainPassCB.Lights[5].Position = { 14.0f, 5.5f, -9.0f };
-	mMainPassCB.Lights[5].Strength = { 0.95f, 0.95f, 0.95f };
-	mMainPassCB.Lights[6].Position = { -14.0f, 5.5f, 9.0f };
-	mMainPassCB.Lights[6].Strength = { 0.95f, 0.95f, 0.95f };
-	mMainPassCB.Lights[7].Position = { -14.0f, 5.5f, -9.0f };
-	mMainPassCB.Lights[7].Strength = { 0.95f, 0.95f, 0.95f };
-	mMainPassCB.Lights[8].Position = { 14.0f, 5.5f, 9.0f };
-	mMainPassCB.Lights[8].Strength = { 0.95f, 0.95f, 0.95f };
-	mMainPassCB.Lights[9].Position = { 0.0f, 5.5f, 17.0f };
-	mMainPassCB.Lights[9].Strength = { 0.95f, 0.95f, 0.95f };
-	mMainPassCB.Lights[10].Position = { 0.0f, 5.5f, -17.0f };
-	mMainPassCB.Lights[10].Strength = { 0.95f, 0.95f, 0.95f };
+	mMainPassCB.Lights[6].Position = { 14.0f, 6.5f, -9.0f };
+	mMainPassCB.Lights[7].Position = { -14.0f, 6.5f, 9.0f };
+	mMainPassCB.Lights[8].Position = { -14.0f, 6.5f, -9.0f };
+	mMainPassCB.Lights[9].Position = { 14.0f, 6.5f, 9.0f };
+	mMainPassCB.Lights[10].Position = { 0.0f, 6.5f, 17.0f };
+	mMainPassCB.Lights[11].Position = { 0.0f, 6.5f, -17.0f };
+
+	for (int i = 2; i < 12; i++) {
+		mMainPassCB.Lights[i].Strength = { 0.95f, 2.95f, 0.95f };
+		mMainPassCB.Lights[i].FalloffStart = 3;
+		mMainPassCB.Lights[i].FalloffEnd = 6;
+	}
 
 	auto currPassCB = mCurrFrameResource->PassCB.get();
 	currPassCB->CopyData(0, mMainPassCB);
@@ -1003,7 +1008,7 @@ void CastleDesign::BuildShapeGeometry()
 
 	GeometryGenerator::MeshData grid = geoGen.CreateGrid(1.0f, 1.0f, 41, 41);
 
-	GeometryGenerator::MeshData sphere = geoGen.CreateSphere(1.0f, 20, 20);
+	GeometryGenerator::MeshData sphere = geoGen.CreateSphere(0.2f, 20, 20);
 
 	GeometryGenerator::MeshData cylinder = geoGen.CreateCylinder(1.0f, 1.0f, 1.0f, 20, 20);
 
@@ -1941,7 +1946,7 @@ void CastleDesign::BuildRenderItems()
 
 	auto coneRitem = std::make_unique<RenderItem>();
 
-	XMStoreFloat4x4(&coneRitem->World, XMMatrixScaling(5.0f, 1.5f, 5.0f) * XMMatrixRotationRollPitchYaw(0.0f, 0.785398f, 0.0f) * XMMatrixTranslation(0.0f, 13.5f, 0.0f));
+	XMStoreFloat4x4(&coneRitem->World, XMMatrixScaling(0.7f, 7.5f, 2.5f) * XMMatrixRotationRollPitchYaw(0.0f, 1.5708f, 0.0f) * XMMatrixTranslation(0.0f, 15.5f, 3.0f));
 
 	coneRitem->ObjCBIndex = 10;
 
@@ -1973,7 +1978,7 @@ void CastleDesign::BuildRenderItems()
 	diamondRitem->StartIndexLocation = diamondRitem->Geo->DrawArgs["diamond"].StartIndexLocation;
 
 	diamondRitem->BaseVertexLocation = diamondRitem->Geo->DrawArgs["diamond"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::Transparent].push_back(diamondRitem.get());
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(diamondRitem.get());
 	mAllRitems.push_back(std::move(diamondRitem));
 
 	auto diamondRitem2 = std::make_unique<RenderItem>();
@@ -1991,7 +1996,7 @@ void CastleDesign::BuildRenderItems()
 	diamondRitem2->StartIndexLocation = diamondRitem2->Geo->DrawArgs["diamond"].StartIndexLocation;
 
 	diamondRitem2->BaseVertexLocation = diamondRitem2->Geo->DrawArgs["diamond"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::Transparent].push_back(diamondRitem2.get());
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(diamondRitem2.get());
 	mAllRitems.push_back(std::move(diamondRitem2));
 
 	auto diamondRitem3 = std::make_unique<RenderItem>();
@@ -2009,7 +2014,7 @@ void CastleDesign::BuildRenderItems()
 	diamondRitem3->StartIndexLocation = diamondRitem3->Geo->DrawArgs["diamond"].StartIndexLocation;
 
 	diamondRitem3->BaseVertexLocation = diamondRitem3->Geo->DrawArgs["diamond"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::Transparent].push_back(diamondRitem3.get());
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(diamondRitem3.get());
 	mAllRitems.push_back(std::move(diamondRitem3));
 
 	auto diamondRitem4 = std::make_unique<RenderItem>();
@@ -2027,7 +2032,7 @@ void CastleDesign::BuildRenderItems()
 	diamondRitem4->StartIndexLocation = diamondRitem4->Geo->DrawArgs["diamond"].StartIndexLocation;
 
 	diamondRitem4->BaseVertexLocation = diamondRitem4->Geo->DrawArgs["diamond"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::Transparent].push_back(diamondRitem4.get());
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(diamondRitem4.get());
 	mAllRitems.push_back(std::move(diamondRitem4));
 	//****************************************************
 
@@ -2054,7 +2059,7 @@ void CastleDesign::BuildRenderItems()
 
 	auto sphereRitem = std::make_unique<RenderItem>();
 
-	XMStoreFloat4x4(&sphereRitem->World, XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixTranslation(14.0f, 5.5f, -9.0f));
+	XMStoreFloat4x4(&sphereRitem->World, XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixTranslation(14.0f, 5.0f, -9.0f));
 
 	sphereRitem->ObjCBIndex = 16;
 
@@ -2067,7 +2072,7 @@ void CastleDesign::BuildRenderItems()
 	sphereRitem->StartIndexLocation = sphereRitem->Geo->DrawArgs["sphere"].StartIndexLocation;
 
 	sphereRitem->BaseVertexLocation = sphereRitem->Geo->DrawArgs["sphere"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::Transparent].push_back(sphereRitem.get());
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(sphereRitem.get());
 	mAllRitems.push_back(std::move(sphereRitem));
 
 
@@ -2092,7 +2097,7 @@ void CastleDesign::BuildRenderItems()
 
 	auto sphereRitem2 = std::make_unique<RenderItem>();
 
-	XMStoreFloat4x4(&sphereRitem2->World, XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixTranslation(-14.0f, 5.5f, 9.0f));
+	XMStoreFloat4x4(&sphereRitem2->World, XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixTranslation(-14.0f, 5.0f, 9.0f));
 
 	sphereRitem2->ObjCBIndex = 18;
 
@@ -2105,7 +2110,7 @@ void CastleDesign::BuildRenderItems()
 	sphereRitem2->StartIndexLocation = sphereRitem2->Geo->DrawArgs["sphere"].StartIndexLocation;
 
 	sphereRitem2->BaseVertexLocation = sphereRitem2->Geo->DrawArgs["sphere"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::Transparent].push_back(sphereRitem2.get());
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(sphereRitem2.get());
 	mAllRitems.push_back(std::move(sphereRitem2));
 
 
@@ -2130,7 +2135,7 @@ void CastleDesign::BuildRenderItems()
 
 	auto sphereRitem3 = std::make_unique<RenderItem>();
 
-	XMStoreFloat4x4(&sphereRitem3->World, XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixTranslation(-14.0f, 5.5f, -9.0f));
+	XMStoreFloat4x4(&sphereRitem3->World, XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixTranslation(-14.0f, 5.0f, -9.0f));
 
 	sphereRitem3->ObjCBIndex = 20;
 
@@ -2143,7 +2148,7 @@ void CastleDesign::BuildRenderItems()
 	sphereRitem3->StartIndexLocation = sphereRitem3->Geo->DrawArgs["sphere"].StartIndexLocation;
 
 	sphereRitem3->BaseVertexLocation = sphereRitem3->Geo->DrawArgs["sphere"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::Transparent].push_back(sphereRitem3.get());
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(sphereRitem3.get());
 	mAllRitems.push_back(std::move(sphereRitem3));
 
 
@@ -2168,7 +2173,7 @@ void CastleDesign::BuildRenderItems()
 
 	auto sphereRitem4 = std::make_unique<RenderItem>();
 
-	XMStoreFloat4x4(&sphereRitem4->World, XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixTranslation(14.0f, 5.5f, 9.0f));
+	XMStoreFloat4x4(&sphereRitem4->World, XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixTranslation(14.0f, 5.0f, 9.0f));
 
 	sphereRitem4->ObjCBIndex = 22;
 
@@ -2181,7 +2186,7 @@ void CastleDesign::BuildRenderItems()
 	sphereRitem4->StartIndexLocation = sphereRitem4->Geo->DrawArgs["sphere"].StartIndexLocation;
 
 	sphereRitem4->BaseVertexLocation = sphereRitem4->Geo->DrawArgs["sphere"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::Transparent].push_back(sphereRitem4.get());
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(sphereRitem4.get());
 	mAllRitems.push_back(std::move(sphereRitem4));
 
 
@@ -2206,7 +2211,7 @@ void CastleDesign::BuildRenderItems()
 
 	auto sphereRitem5 = std::make_unique<RenderItem>();
 
-	XMStoreFloat4x4(&sphereRitem5->World, XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixTranslation(0.0f, 5.5f, 17.0f));
+	XMStoreFloat4x4(&sphereRitem5->World, XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixTranslation(0.0f, 5.0f, 17.0f));
 
 	sphereRitem5->ObjCBIndex = 24;
 
@@ -2219,7 +2224,7 @@ void CastleDesign::BuildRenderItems()
 	sphereRitem5->StartIndexLocation = sphereRitem5->Geo->DrawArgs["sphere"].StartIndexLocation;
 
 	sphereRitem5->BaseVertexLocation = sphereRitem5->Geo->DrawArgs["sphere"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::Transparent].push_back(sphereRitem5.get());
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(sphereRitem5.get());
 	mAllRitems.push_back(std::move(sphereRitem5));
 
 
@@ -2244,7 +2249,7 @@ void CastleDesign::BuildRenderItems()
 
 	auto sphereRitem6 = std::make_unique<RenderItem>();
 
-	XMStoreFloat4x4(&sphereRitem6->World, XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixTranslation(0.0f, 5.5f, -17.0f));
+	XMStoreFloat4x4(&sphereRitem6->World, XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixTranslation(0.0f, 5.0f, -17.0f));
 
 	sphereRitem6->ObjCBIndex = 26;
 
@@ -2257,7 +2262,7 @@ void CastleDesign::BuildRenderItems()
 	sphereRitem6->StartIndexLocation = sphereRitem6->Geo->DrawArgs["sphere"].StartIndexLocation;
 
 	sphereRitem6->BaseVertexLocation = sphereRitem6->Geo->DrawArgs["sphere"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::Transparent].push_back(sphereRitem6.get());
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(sphereRitem6.get());
 	mAllRitems.push_back(std::move(sphereRitem6));
 	//****************************************************
 
@@ -2343,7 +2348,7 @@ void CastleDesign::BuildRenderItems()
 	//****************************************************
 	auto torusRitem = std::make_unique<RenderItem>();
 
-	XMStoreFloat4x4(&torusRitem->World, XMMatrixScaling(4.0f, 2.0f, 2.0f) * XMMatrixRotationRollPitchYaw(0.0f, 1.5708f, 0.0f) * XMMatrixTranslation(0.0f, 17.5f, 0.0f));
+	XMStoreFloat4x4(&torusRitem->World, XMMatrixScaling(2.0f, 1.0f, 2.0f) * XMMatrixRotationRollPitchYaw(0.0f, 1.5708f, 0.0f) * XMMatrixTranslation(0.0f, 17.5f, 0.0f));
 
 	torusRitem->ObjCBIndex = 31;
 
@@ -2362,20 +2367,21 @@ void CastleDesign::BuildRenderItems()
 
 	auto diamondRitem5 = std::make_unique<RenderItem>();
 
-	XMStoreFloat4x4(&diamondRitem5->World, XMMatrixScaling(1.0f, 2.0f, 1.0f) * XMMatrixTranslation(0.0f, 18.5f, 0.0f));
+	XMStoreFloat4x4(&diamondRitem5->World, XMMatrixScaling(0.5f, 1.0f, 0.5f) * XMMatrixTranslation(0.0f, 18.0f, 0.0f));
 
 	diamondRitem5->ObjCBIndex = 32;
 
 	diamondRitem5->Geo = mGeometries["shapeGeo"].get();
 	diamondRitem5->Mat = mMaterials["glass0"].get();
 	diamondRitem5->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-
+	
 	diamondRitem5->IndexCount = diamondRitem5->Geo->DrawArgs["diamond"].IndexCount;
 
 	diamondRitem5->StartIndexLocation = diamondRitem5->Geo->DrawArgs["diamond"].StartIndexLocation;
 
 	diamondRitem5->BaseVertexLocation = diamondRitem5->Geo->DrawArgs["diamond"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::Transparent].push_back(diamondRitem5.get());
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(diamondRitem5.get());
+
 	mAllRitems.push_back(std::move(diamondRitem5));
 
 	
@@ -2540,6 +2546,19 @@ void CastleDesign::BuildRenderItems()
 	mRitemLayer[(int)RenderLayer::AlphaTestedTreeSprites].push_back(treeSpritesRitem.get());
 	mAllRitems.push_back(std::move(wavesRitem));
 	mAllRitems.push_back(std::move(treeSpritesRitem));
+
+	++objCBIndex;
+	auto coneRitem2 = std::make_unique<RenderItem>();
+	XMStoreFloat4x4(&coneRitem2->World, XMMatrixScaling(0.7f, 7.5f, 2.5f)* XMMatrixRotationRollPitchYaw(0.0f, 1.5708f, 0.0f)* XMMatrixTranslation(0.0f, 15.5f, -3.0f));
+	coneRitem2->ObjCBIndex = objCBIndex;
+	coneRitem2->Geo = mGeometries["shapeGeo"].get();
+	coneRitem2->Mat = mMaterials["roof0"].get();
+	coneRitem2->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	coneRitem2->IndexCount = coneRitem2->Geo->DrawArgs["cone"].IndexCount;
+	coneRitem2->StartIndexLocation = coneRitem2->Geo->DrawArgs["cone"].StartIndexLocation;
+	coneRitem2->BaseVertexLocation = coneRitem2->Geo->DrawArgs["cone"].BaseVertexLocation;
+	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(coneRitem2.get());
+	mAllRitems.push_back(std::move(coneRitem2));
 }
 
 void CastleDesign::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems)
