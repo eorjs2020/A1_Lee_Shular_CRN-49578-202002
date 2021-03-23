@@ -578,14 +578,14 @@ void CastleDesign::LoadTextures()
 {
 	auto waterTex = std::make_unique<Texture>();
 	waterTex->Name = "waterTex";
-	waterTex->Filename = L"../../Textures/water1.dds";
+	waterTex->Filename = L"Graphics Textures/water1.dds";
 	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
 		mCommandList.Get(), waterTex->Filename.c_str(),
 		waterTex->Resource, waterTex->UploadHeap));
 
 	auto fenceTex = std::make_unique<Texture>();
 	fenceTex->Name = "fenceTex";
-	fenceTex->Filename = L"../../Textures/WireFence.dds";
+	fenceTex->Filename = L"Graphics Textures/WireFence.dds";
 	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
 		mCommandList.Get(), fenceTex->Filename.c_str(),
 		fenceTex->Resource, fenceTex->UploadHeap));
@@ -606,7 +606,7 @@ void CastleDesign::LoadTextures()
 
 	auto grassTex = std::make_unique<Texture>();
 	grassTex->Name = "grassTex";
-	grassTex->Filename = L"Graphics Textures/grass.dds";
+	grassTex->Filename = L"Graphics Textures/Lave_Cracks.dds";
 	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
 		mCommandList.Get(), grassTex->Filename.c_str(),
 		grassTex->Resource, grassTex->UploadHeap));
@@ -655,7 +655,7 @@ void CastleDesign::LoadTextures()
 
 	auto treeArrayTex = std::make_unique<Texture>();
 	treeArrayTex->Name = "treeArrayTex";
-	treeArrayTex->Filename = L"../../Textures/treeArray.dds";
+	treeArrayTex->Filename = L"Graphics Textures/treearray.dds";
 	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
 		mCommandList.Get(), treeArrayTex->Filename.c_str(),
 		treeArrayTex->Resource, treeArrayTex->UploadHeap));
@@ -830,7 +830,7 @@ void CastleDesign::BuildDescriptorHeaps()
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
 	srvDesc.Format = treeArrayTex->GetDesc().Format;
 	srvDesc.Texture2DArray.MostDetailedMip = 0;
-	srvDesc.Texture2DArray.MipLevels = treeArrayTex->GetDesc().MipLevels;
+	srvDesc.Texture2DArray.MipLevels = 1;
 	srvDesc.Texture2DArray.FirstArraySlice = 0;
 	srvDesc.Texture2DArray.ArraySize = treeArrayTex->GetDesc().DepthOrArraySize;
 	md3dDevice->CreateShaderResourceView(treeArrayTex.Get(), &srvDesc, hDescriptor);
@@ -1973,7 +1973,7 @@ void CastleDesign::BuildRenderItems()
 	diamondRitem->StartIndexLocation = diamondRitem->Geo->DrawArgs["diamond"].StartIndexLocation;
 
 	diamondRitem->BaseVertexLocation = diamondRitem->Geo->DrawArgs["diamond"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(diamondRitem.get());
+	mRitemLayer[(int)RenderLayer::Transparent].push_back(diamondRitem.get());
 	mAllRitems.push_back(std::move(diamondRitem));
 
 	auto diamondRitem2 = std::make_unique<RenderItem>();
@@ -1991,7 +1991,7 @@ void CastleDesign::BuildRenderItems()
 	diamondRitem2->StartIndexLocation = diamondRitem2->Geo->DrawArgs["diamond"].StartIndexLocation;
 
 	diamondRitem2->BaseVertexLocation = diamondRitem2->Geo->DrawArgs["diamond"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(diamondRitem2.get());
+	mRitemLayer[(int)RenderLayer::Transparent].push_back(diamondRitem2.get());
 	mAllRitems.push_back(std::move(diamondRitem2));
 
 	auto diamondRitem3 = std::make_unique<RenderItem>();
@@ -2009,7 +2009,7 @@ void CastleDesign::BuildRenderItems()
 	diamondRitem3->StartIndexLocation = diamondRitem3->Geo->DrawArgs["diamond"].StartIndexLocation;
 
 	diamondRitem3->BaseVertexLocation = diamondRitem3->Geo->DrawArgs["diamond"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(diamondRitem3.get());
+	mRitemLayer[(int)RenderLayer::Transparent].push_back(diamondRitem3.get());
 	mAllRitems.push_back(std::move(diamondRitem3));
 
 	auto diamondRitem4 = std::make_unique<RenderItem>();
@@ -2027,7 +2027,7 @@ void CastleDesign::BuildRenderItems()
 	diamondRitem4->StartIndexLocation = diamondRitem4->Geo->DrawArgs["diamond"].StartIndexLocation;
 
 	diamondRitem4->BaseVertexLocation = diamondRitem4->Geo->DrawArgs["diamond"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(diamondRitem4.get());
+	mRitemLayer[(int)RenderLayer::Transparent].push_back(diamondRitem4.get());
 	mAllRitems.push_back(std::move(diamondRitem4));
 	//****************************************************
 
@@ -2067,7 +2067,7 @@ void CastleDesign::BuildRenderItems()
 	sphereRitem->StartIndexLocation = sphereRitem->Geo->DrawArgs["sphere"].StartIndexLocation;
 
 	sphereRitem->BaseVertexLocation = sphereRitem->Geo->DrawArgs["sphere"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(sphereRitem.get());
+	mRitemLayer[(int)RenderLayer::Transparent].push_back(sphereRitem.get());
 	mAllRitems.push_back(std::move(sphereRitem));
 
 
@@ -2105,7 +2105,7 @@ void CastleDesign::BuildRenderItems()
 	sphereRitem2->StartIndexLocation = sphereRitem2->Geo->DrawArgs["sphere"].StartIndexLocation;
 
 	sphereRitem2->BaseVertexLocation = sphereRitem2->Geo->DrawArgs["sphere"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(sphereRitem2.get());
+	mRitemLayer[(int)RenderLayer::Transparent].push_back(sphereRitem2.get());
 	mAllRitems.push_back(std::move(sphereRitem2));
 
 
@@ -2143,7 +2143,7 @@ void CastleDesign::BuildRenderItems()
 	sphereRitem3->StartIndexLocation = sphereRitem3->Geo->DrawArgs["sphere"].StartIndexLocation;
 
 	sphereRitem3->BaseVertexLocation = sphereRitem3->Geo->DrawArgs["sphere"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(sphereRitem3.get());
+	mRitemLayer[(int)RenderLayer::Transparent].push_back(sphereRitem3.get());
 	mAllRitems.push_back(std::move(sphereRitem3));
 
 
@@ -2181,7 +2181,7 @@ void CastleDesign::BuildRenderItems()
 	sphereRitem4->StartIndexLocation = sphereRitem4->Geo->DrawArgs["sphere"].StartIndexLocation;
 
 	sphereRitem4->BaseVertexLocation = sphereRitem4->Geo->DrawArgs["sphere"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(sphereRitem4.get());
+	mRitemLayer[(int)RenderLayer::Transparent].push_back(sphereRitem4.get());
 	mAllRitems.push_back(std::move(sphereRitem4));
 
 
@@ -2219,7 +2219,7 @@ void CastleDesign::BuildRenderItems()
 	sphereRitem5->StartIndexLocation = sphereRitem5->Geo->DrawArgs["sphere"].StartIndexLocation;
 
 	sphereRitem5->BaseVertexLocation = sphereRitem5->Geo->DrawArgs["sphere"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(sphereRitem5.get());
+	mRitemLayer[(int)RenderLayer::Transparent].push_back(sphereRitem5.get());
 	mAllRitems.push_back(std::move(sphereRitem5));
 
 
@@ -2257,7 +2257,7 @@ void CastleDesign::BuildRenderItems()
 	sphereRitem6->StartIndexLocation = sphereRitem6->Geo->DrawArgs["sphere"].StartIndexLocation;
 
 	sphereRitem6->BaseVertexLocation = sphereRitem6->Geo->DrawArgs["sphere"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(sphereRitem6.get());
+	mRitemLayer[(int)RenderLayer::Transparent].push_back(sphereRitem6.get());
 	mAllRitems.push_back(std::move(sphereRitem6));
 	//****************************************************
 
@@ -2375,7 +2375,7 @@ void CastleDesign::BuildRenderItems()
 	diamondRitem5->StartIndexLocation = diamondRitem5->Geo->DrawArgs["diamond"].StartIndexLocation;
 
 	diamondRitem5->BaseVertexLocation = diamondRitem5->Geo->DrawArgs["diamond"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(diamondRitem5.get());
+	mRitemLayer[(int)RenderLayer::Transparent].push_back(diamondRitem5.get());
 	mAllRitems.push_back(std::move(diamondRitem5));
 
 	
