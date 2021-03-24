@@ -826,6 +826,7 @@ void CastleDesign::BuildDescriptorHeaps()
 
 	srvDesc.Format = TorusTex->GetDesc().Format;
 	srvDesc.Texture2D.MipLevels = TorusTex->GetDesc().MipLevels;
+	
 	md3dDevice->CreateShaderResourceView(TorusTex.Get(), &srvDesc, hDescriptor);
 	
 	// next descriptor
@@ -1895,7 +1896,7 @@ void CastleDesign::BuildRenderItems()
 	pyramidRitem->ObjCBIndex = 7;
 
 	pyramidRitem->Geo = mGeometries["shapeGeo"].get();
-	pyramidRitem->Mat = mMaterials["stone0"].get();
+	pyramidRitem->Mat = mMaterials["prism0"].get();
 	pyramidRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	pyramidRitem->IndexCount = pyramidRitem->Geo->DrawArgs["pyramid"].IndexCount;
@@ -2580,13 +2581,13 @@ void CastleDesign::BuildRenderItems()
 			break;
 		}
 		
-
+		XMStoreFloat4x4(&outsideBox->TexTransform, XMMatrixScaling(7.0f, 3.0f, 1.0f));
 		outsideBox->ObjCBIndex = objCBIndex++;
 
 		outsideBox->Geo = mGeometries["shapeGeo"].get();
-		outsideBox->Mat = mMaterials["bricks0"].get();
+		outsideBox->Mat = mMaterials["grass"].get();
 		outsideBox->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-
+		
 		outsideBox->IndexCount = outsideBox->Geo->DrawArgs["box"].IndexCount;
 
 		outsideBox->StartIndexLocation = outsideBox->Geo->DrawArgs["box"].StartIndexLocation;
