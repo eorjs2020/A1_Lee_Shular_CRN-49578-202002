@@ -1,6 +1,9 @@
 //***************************************************************************************
-// TreeBillboardsApp.cpp 
+// Lee_Shular_Castle_Design_A2
+// Daekoen Lee	  101076401
+// Michael Shular 101273089
 //***************************************************************************************
+
 
 #include "../../Common/d3dApp.h"
 #include "../../Common/MathHelper.h"
@@ -104,9 +107,7 @@ private:
 
 	std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> GetStaticSamplers();
 
-    float GetHillsHeight(float x, float z)const;
-    XMFLOAT3 GetHillsNormal(float x, float z)const;
-
+  
 private:
 
     std::vector<std::unique_ptr<FrameResource>> mFrameResources;
@@ -264,13 +265,13 @@ void CastleDesign::Update(const GameTimer& gt)
 
 void CastleDesign::Draw(const GameTimer& gt)
 {
+	// Swtitch between Water and Lava.
 	if (mLava) {
 		mAllRitems[75]->Mat = mMaterials["water"].get();
 	}
 	else {
 		mAllRitems[75]->Mat = mMaterials["Torus0"].get();
 	}
-
 
     auto cmdListAlloc = mCurrFrameResource->CmdListAlloc;
 
@@ -386,9 +387,9 @@ void CastleDesign::OnMouseMove(WPARAM btnState, int x, int y)
  
 void CastleDesign::OnKeyboardInput(const GameTimer& gt)
 {
+	// Making Switching system with keyboard 1.
 	if (GetAsyncKeyState('1') & 0x8000)
 		mLava = true;
-
 	else
 		mLava = false;
 }
@@ -411,12 +412,11 @@ void CastleDesign::UpdateCamera(const GameTimer& gt)
 
 void CastleDesign::AnimateMaterials(const GameTimer& gt)
 {
-	// Scroll the water material texture coordinates.
+	// Making waves with animating by deltaTime
+	// shifting textur's uv
 	auto waterMat = mMaterials["water"].get();
-
 	float& tu = waterMat->MatTransform(3, 0);
 	float& tv = waterMat->MatTransform(3, 1);
-
 	tu += 0.1f * gt.DeltaTime();
 	tv += 0.02f * gt.DeltaTime();
 
@@ -506,11 +506,11 @@ void CastleDesign::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.FarZ = 1000.0f;
 	mMainPassCB.TotalTime = gt.TotalTime();
 	mMainPassCB.DeltaTime = gt.DeltaTime();
+	//AmibientLight
 	mMainPassCB.AmbientLight = { 0.25f, 0.25f, 0.35f, 1.0f };
 	//Lava Light
 	mMainPassCB.Lights[0].Position = { 0.0f, 0.0f, 0.0f };
-	mMainPassCB.Lights[0].Direction = { 0.0f, -5.0f, 0.0f };
-	//mMainPassCB.Lights[0].Strength = { 0.0f, 0.0f, 0.0f };
+	mMainPassCB.Lights[0].Direction = { 0.0f, -5.0f, 0.0f };	
 	mMainPassCB.Lights[0].Strength = { 0.30f, 0.1f, 0.1f };
 	//Eye light
 	mMainPassCB.Lights[1].Position = { 0.0f, 15.0f, 0.0f };
@@ -520,7 +520,6 @@ void CastleDesign::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.Lights[3].Position = { -6.5f, 2.0f, 6.5f };
 	mMainPassCB.Lights[4].Position = { 6.5f, 2.0f, -6.5f };
 	mMainPassCB.Lights[5].Position = { -6.5f, 2.0f, -6.5f };
-
 	//sphere around wall 
 	mMainPassCB.Lights[6].Position = { 14.0f, 6.5f, -9.0f };
 	mMainPassCB.Lights[7].Position = { -14.0f, 6.5f, 9.0f };
@@ -528,7 +527,7 @@ void CastleDesign::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.Lights[9].Position = { 14.0f, 6.5f, 9.0f };
 	mMainPassCB.Lights[10].Position = { 0.0f, 6.5f, 17.0f };
 	mMainPassCB.Lights[11].Position = { 0.0f, 6.5f, -17.0f };
-
+	// Point Strength setting change between array position.
 	for (int i = 2; i < 12; i++) {
 		mMainPassCB.Lights[i].Strength = { 0.95f, 2.95f, 0.95f };
 		mMainPassCB.Lights[i].FalloffStart = 3;
@@ -546,10 +545,8 @@ void CastleDesign::UpdateWaves(const GameTimer& gt)
 	if((mTimer.TotalTime() - t_base) >= 0.25f)
 	{
 		t_base += 0.25f;
-
 		int i = MathHelper::Rand(4, mWaves->RowCount() - 5);
 		int j = MathHelper::Rand(4, mWaves->ColumnCount() - 5);
-
 		float r = MathHelper::RandF(0.2f, 0.5f);
 
 		mWaves->Disturb(i, j, r);
@@ -563,10 +560,8 @@ void CastleDesign::UpdateWaves(const GameTimer& gt)
 	for(int i = 0; i < mWaves->VertexCount(); ++i)
 	{
 		Vertex v;
-
 		v.Pos = mWaves->Position(i);
-		v.Normal = mWaves->Normal(i);
-		
+		v.Normal = mWaves->Normal(i);		
 		// Derive tex-coords from position by 
 		// mapping [-w/2,w/2] --> [0,1]
 		v.TexC.x = 0.5f + v.Pos.x / mWaves->Width();
@@ -578,6 +573,7 @@ void CastleDesign::UpdateWaves(const GameTimer& gt)
 	// Set the dynamic VB of the wave renderitem to the current frame VB.
 	mWavesRitem->Geo->VertexBufferGPU = currWavesVB->Resource();
 }
+
 
 void CastleDesign::LoadTextures()
 {
@@ -609,12 +605,12 @@ void CastleDesign::LoadTextures()
 		mCommandList.Get(), stoneTex->Filename.c_str(),
 		stoneTex->Resource, stoneTex->UploadHeap));
 
-	auto grassTex = std::make_unique<Texture>();
-	grassTex->Name = "grassTex";
-	grassTex->Filename = L"Graphics Textures/Lave_Cracks.dds";
+	auto LavaTex = std::make_unique<Texture>();
+	LavaTex->Name = "LavaTex";
+	LavaTex->Filename = L"Graphics Textures/Lave_Cracks.dds";
 	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
-		mCommandList.Get(), grassTex->Filename.c_str(),
-		grassTex->Resource, grassTex->UploadHeap));
+		mCommandList.Get(), LavaTex->Filename.c_str(),
+		LavaTex->Resource, LavaTex->UploadHeap));
 
 	auto roofTex = std::make_unique<Texture>();
 	roofTex->Name = "roofTex";
@@ -664,12 +660,12 @@ void CastleDesign::LoadTextures()
 	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
 		mCommandList.Get(), treeArrayTex->Filename.c_str(),
 		treeArrayTex->Resource, treeArrayTex->UploadHeap));
-
+	// storing the texture in mTexture map;
 	mTextures[waterTex->Name] = std::move(waterTex);
 	mTextures[fenceTex->Name] = std::move(fenceTex);	
 	mTextures[bricksTex->Name] = std::move(bricksTex);
 	mTextures[stoneTex->Name] = std::move(stoneTex);
-	mTextures[grassTex->Name] = std::move(grassTex);
+	mTextures[LavaTex->Name] = std::move(LavaTex);
 	mTextures[roofTex->Name] = std::move(roofTex);
 	mTextures[prismTex->Name] = std::move(prismTex);
 	mTextures[doorTex->Name] = std::move(doorTex);
@@ -734,13 +730,14 @@ void CastleDesign::BuildDescriptorHeaps()
 	//
 	// Fill out the heap with actual descriptors.
 	//
+	
 	CD3DX12_CPU_DESCRIPTOR_HANDLE hDescriptor(mSrvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-
+	// build meterial's decriptor heap by meterial's order. 
 	auto waterTex = mTextures["waterTex"]->Resource;
 	auto fenceTex = mTextures["fenceTex"]->Resource;
 	auto bricksTex = mTextures["bricksTex"]->Resource;
 	auto stoneTex = mTextures["stoneTex"]->Resource;
-	auto grassTex = mTextures["grassTex"]->Resource;	
+	auto grassTex = mTextures["LavaTex"]->Resource;	
 	auto roofTex = mTextures["roofTex"]->Resource;
 	auto prismTex = mTextures["prismTex"]->Resource;
 	auto doorTex = mTextures["doorTex"]->Resource;
@@ -858,11 +855,11 @@ void CastleDesign::BuildShadersAndInputLayouts()
 		"ALPHA_TEST", "1",
 		NULL, NULL
 	};
-
+	// Default shader.
 	mShaders["standardVS"] = d3dUtil::CompileShader(L"Shaders\\Default.hlsl", nullptr, "VS", "vs_5_1");
 	mShaders["opaquePS"] = d3dUtil::CompileShader(L"Shaders\\Default.hlsl", defines, "PS", "ps_5_1");
 	mShaders["alphaTestedPS"] = d3dUtil::CompileShader(L"Shaders\\Default.hlsl", alphaTestDefines, "PS", "ps_5_1");
-	
+	// Tree Shader.
 	mShaders["treeSpriteVS"] = d3dUtil::CompileShader(L"Shaders\\TreeSprite.hlsl", nullptr, "VS", "vs_5_1");
 	mShaders["treeSpriteGS"] = d3dUtil::CompileShader(L"Shaders\\TreeSprite.hlsl", nullptr, "GS", "gs_5_1");
 	mShaders["treeSpritePS"] = d3dUtil::CompileShader(L"Shaders\\TreeSprite.hlsl", alphaTestDefines, "PS", "ps_5_1");
@@ -900,13 +897,14 @@ void CastleDesign::BuildLandGeometry()
 		vertices[i].Normal = grid.Vertices[i].Normal;
 		vertices[i].TexC = grid.Vertices[i].TexC;
 	}
-
+	// Making level.
+	// half of the grid's y postion set it to down position.
+	 
     for(size_t i = (grid.Vertices.size() / 2); i < grid.Vertices.size(); ++i)
     {
         auto& p = grid.Vertices[i].Position;
         vertices[i].Pos = p;
-		vertices[i].Pos.y -= 10.0f;
-        //vertices[i].Normal = GetHillsNormal(p.x, p.z);
+		vertices[i].Pos.y -= 10.0f;        
 		vertices[i].TexC = grid.Vertices[i].TexC;
     }
 
@@ -947,13 +945,14 @@ void CastleDesign::BuildLandGeometry()
 
 void CastleDesign::BuildWavesGeometry()
 {
-    std::vector<std::uint16_t> indices(3 * mWaves->TriangleCount()); // 3 indices per face
+    std::vector<std::uint16_t> indices(3 * mWaves->TriangleCount()); // 3 indices per face	
 	assert(mWaves->VertexCount() < 0x0000ffff);
 
     // Iterate over each quad.
     int m = mWaves->RowCount();
     int n = mWaves->ColumnCount();
     int k = 0;
+	// set indices
     for(int i = 0; i < m - 1; ++i)
     {
         for(int j = 0; j < n - 1; ++j)
@@ -990,7 +989,7 @@ void CastleDesign::BuildWavesGeometry()
 	geo->VertexBufferByteSize = vbByteSize;
 	geo->IndexFormat = DXGI_FORMAT_R16_UINT;
 	geo->IndexBufferByteSize = ibByteSize;
-
+	
 	SubmeshGeometry submesh;
 	submesh.IndexCount = (UINT)indices.size();
 	submesh.StartIndexLocation = 0;
@@ -1448,15 +1447,16 @@ void CastleDesign::BuildShapeGeometry()
 
 void CastleDesign::BuildTreeSpritesGeometry()
 {
-	//step5
+	// make a vertex struct for Tree array.
 	struct TreeSpriteVertex
 	{
 		XMFLOAT3 Pos;
 		XMFLOAT2 Size;
 	};
-
+	//Tree count
 	static const int treeCount = 16;
 	std::array<TreeSpriteVertex, 16> vertices;
+	// half of the trees place right position from the castle
 	for(UINT i = 0; i < treeCount/2; ++i)
 	{
 		float x = MathHelper::RandF(-15, 15);
@@ -1469,6 +1469,7 @@ void CastleDesign::BuildTreeSpritesGeometry()
 		vertices[i].Pos = XMFLOAT3(x, y, z);
 		vertices[i].Size = XMFLOAT2(5.0f, 5.0f);
 	}
+	// left trees place left position from the castle
 	for (UINT i = treeCount / 2; i < treeCount; ++i)
 	{
 		float x = MathHelper::RandF(-15, 15);
@@ -1748,7 +1749,6 @@ void CastleDesign::BuildMaterials()
 
 void CastleDesign::BuildRenderItems()
 {
-
 	auto gridRitem = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&gridRitem->World, XMMatrixScaling(0.5f, 0.5f, 0.5f) * XMMatrixRotationRollPitchYaw(0.0f, -1.5708f, 0.0f) * XMMatrixTranslation(20.0f, 0.0f, 0.0f));
 	XMStoreFloat4x4(&gridRitem->TexTransform, XMMatrixScaling(5.0f, 5.0f, 1.0f) );
@@ -1762,8 +1762,7 @@ void CastleDesign::BuildRenderItems()
 
 	mRitemLayer[(int)RenderLayer::Opaque].push_back(gridRitem.get());
 	mAllRitems.push_back(std::move(gridRitem));
-	
-	
+		
 
 	 //CatleWall;
 	//****************************************************
@@ -2561,6 +2560,8 @@ void CastleDesign::BuildRenderItems()
 	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(coneRitem2.get());
 	mAllRitems.push_back(std::move(coneRitem2));
 
+
+	// Catsle wall top boxies
 	++objCBIndex;
 	for (auto i = 0; i < 4; ++i)
 	{
@@ -2709,21 +2710,4 @@ std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> CastleDesign::GetStaticSamplers
 		anisotropicWrap, anisotropicClamp };
 }
 
-float CastleDesign::GetHillsHeight(float x, float z)const
-{
-    return 0.3f*(z*sinf(0.1f*x) + x*cosf(0.1f*z));
-}
 
-XMFLOAT3 CastleDesign::GetHillsNormal(float x, float z)const
-{
-    // n = (-df/dx, 1, -df/dz)
-    XMFLOAT3 n(
-        -0.03f*z*cosf(0.1f*x) - 0.3f*cosf(0.1f*z),
-        1.0f,
-        -0.3f*sinf(0.1f*x) + 0.03f*x*sinf(0.1f*z));
-
-    XMVECTOR unitNormal = XMVector3Normalize(XMLoadFloat3(&n));
-    XMStoreFloat3(&n, unitNormal);
-
-    return n;
-}
