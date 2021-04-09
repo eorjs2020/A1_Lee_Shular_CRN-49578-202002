@@ -11,14 +11,15 @@
 #include "GeometryGenerator.h"
 #include "FrameResource.h"
 #include "Waves.h"
-
+#include <fstream>
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
 using namespace DirectX::PackedVector;
 
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "D3D12.lib")
-
+#define tileMapWidth 20
+#define tileMapHeight 40
 const int gNumFrameResources = 3;
 
 // Lightweight structure stores parameters to draw a shape.  This will
@@ -104,7 +105,7 @@ private:
     void BuildMaterials();
     void BuildRenderItems();
     void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems);
-
+	void TileMapDrawing(char key, float offsetX, float offsetY, float offsetZ, int index);
 	std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> GetStaticSamplers();
 
   
@@ -148,7 +149,7 @@ private:
     float mTheta = 1.5f*XM_PI;
     float mPhi = XM_PIDIV2 - 0.1f;
     float mRadius = 50.0f;
-
+	std::array<std::array<char, 40>, 40> tilemap;
     POINT mLastMousePos;
 	bool mLava; 
 	int timer = 0;
@@ -203,6 +204,21 @@ bool CastleDesign::Initialize()
 
     mWaves = std::make_unique<Waves>(128, 128, 1.0f, 0.03f, 4.0f, 0.2f);
 	
+	std::ifstream inFile("map.txt");
+	if (inFile.is_open())
+	{
+		char key;
+		for (auto row = 0; row < tileMapWidth; ++row)
+		{
+			for (auto col = 0; col < tileMapHeight; ++col)
+			{
+				inFile >> key;
+
+				tilemap[row][col] = key;
+			}
+		}
+	}
+
 	LoadTextures();
     BuildRootSignature();
 	BuildDescriptorHeaps();
@@ -1025,9 +1041,7 @@ void CastleDesign::BuildShapeGeometry()
 	GeometryGenerator::MeshData wedge = geoGen.CreateWedge(1.0f, 1.0f, 1.0f, 0);
 
 	GeometryGenerator::MeshData torus = geoGen.CreateTorus(1.0f, 0.5f, 50, 50);
-
-
-
+		
 	//
 
 	// We are concatenating all the geometry into one big vertex/index buffer.  So
@@ -2598,6 +2612,8 @@ void CastleDesign::BuildRenderItems()
 		mAllRitems.push_back(std::move(outsideBox));
 	}
 
+
+
 	XMMatrixRotationRollPitchYaw(0.0f, 1.0472f, 0.0f);
 
 	auto door = std::make_unique<RenderItem>();
@@ -2617,6 +2633,17 @@ void CastleDesign::BuildRenderItems()
 	door->BaseVertexLocation = door->Geo->DrawArgs["box"].BaseVertexLocation;
 	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(door.get());
 	mAllRitems.push_back(std::move(door));
+
+
+	for (auto row = 0; row < tileMapWidth; ++row)
+	{
+		for (auto col = 0; col < tileMapHeight; ++col)
+		{
+			if(tilemap[row][col] != '0')
+				++objCBIndex;
+			TileMapDrawing(tilemap[row][col], row, 0, col, objCBIndex);
+		}
+	}
 
 
 }
@@ -2651,6 +2678,37 @@ void CastleDesign::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std
 
         cmdList->DrawIndexedInstanced(ri->IndexCount, 1, ri->StartIndexLocation, ri->BaseVertexLocation, 0);
     }
+}
+
+void CastleDesign::TileMapDrawing(char key, float offsetX, float offsetY, float offsetZ, int index)
+{
+	
+	char a = key;
+	switch (a)
+	{
+	case '0':
+		break;
+	case '1':
+		auto boxRitem = std::make_unique<RenderItem>();
+
+		XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(1.0f, 3.0f, 1.0f) *
+			XMMatrixTranslation(0.0f + offsetX, 0.0f + offsetY, 0.0f + offsetZ));
+
+		boxRitem->ObjCBIndex = index;
+
+		boxRitem->Geo = mGeometries["shapeGeo"].get();
+		boxRitem->Mat = mMaterials["bricks0"].get();
+		boxRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+		boxRitem->IndexCount = boxRitem->Geo->DrawArgs["box"].IndexCount;
+
+		boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs["box"].StartIndexLocation;
+
+		boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
+		mRitemLayer[(int)RenderLayer::AlphaTested].push_back(boxRitem.get());
+		mAllRitems.push_back(std::move(boxRitem));
+		break;
+	}
 }
 
 std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> CastleDesign::GetStaticSamplers()
