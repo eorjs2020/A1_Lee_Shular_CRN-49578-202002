@@ -19,7 +19,7 @@ using namespace DirectX::PackedVector;
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "D3D12.lib")
 #define tileMapWidth 40
-#define tileMapHeight 20
+#define tileMapHeight 19
 const int gNumFrameResources = 3;
 
 // Lightweight structure stores parameters to draw a shape.  This will
@@ -580,8 +580,8 @@ void CastleDesign::UpdateWaves(const GameTimer& gt)
 		v.Normal = mWaves->Normal(i);		
 		// Derive tex-coords from position by 
 		// mapping [-w/2,w/2] --> [0,1]
-		v.TexC.x = 0.5f + v.Pos.x / mWaves->Width();
-		v.TexC.y = 0.5f - v.Pos.z / mWaves->Depth();
+		v.TexC.x = 1.0f + v.Pos.x / mWaves->Width();
+		v.TexC.y = 1.0f - v.Pos.z / mWaves->Depth();
 
 		currWavesVB->CopyData(i, v);
 	}
@@ -868,7 +868,7 @@ void CastleDesign::BuildShadersAndInputLayouts()
 	const D3D_SHADER_MACRO alphaTestDefines[] =
 	{
 		"FOG", "1",
-		"ALPHA_TEST", "1",
+
 		NULL, NULL
 	};
 	// Default shader.
@@ -916,13 +916,29 @@ void CastleDesign::BuildLandGeometry()
 	// Making level.
 	// half of the grid's y postion set it to down position.
 	 
-    for(size_t i = (grid.Vertices.size() / 2); i < grid.Vertices.size(); ++i)
+    for(size_t i = 0; i < (grid.Vertices.size() / 4); ++i)
     {
         auto& p = grid.Vertices[i].Position;
         vertices[i].Pos = p;
-		vertices[i].Pos.y -= 10.0f;        
+		vertices[i].Pos.y;        
 		vertices[i].TexC = grid.Vertices[i].TexC;
+		
+		auto& a = grid.Vertices[i + (grid.Vertices.size() / 2)].Position;
+		vertices[i + (grid.Vertices.size() / 2)].Pos = a;
+		vertices[i + (grid.Vertices.size() / 2)].Pos.y -= 10.0f;
+		vertices[i + (grid.Vertices.size() / 2)].TexC = grid.Vertices[i + (grid.Vertices.size() / 2)].TexC;
+
+		/*auto& b = grid.Vertices[i + (grid.Vertices.size() / 2)].Position;
+		vertices[i + (grid.Vertices.size() / 2)].Pos = b;
+		vertices[i + (grid.Vertices.size() / 2)].Pos.y;
+		vertices[i + (grid.Vertices.size() / 2)].TexC = grid.Vertices[i + (grid.Vertices.size() / 2)].TexC;
+		auto& c = grid.Vertices[i + (grid.Vertices.size() / 2)].Position;
+		vertices[i + (grid.Vertices.size() / 2)].Pos = c;
+		vertices[i + (grid.Vertices.size() / 2)].Pos.y;
+		vertices[i + (grid.Vertices.size() / 2)].TexC = grid.Vertices[i + (grid.Vertices.size() / 2)].TexC;*/
     }
+	
+
 
     const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
 
@@ -1764,7 +1780,7 @@ void CastleDesign::BuildMaterials()
 void CastleDesign::BuildRenderItems()
 {
 	auto gridRitem = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&gridRitem->World, XMMatrixScaling(0.5f, 0.5f, 0.5f) * XMMatrixRotationRollPitchYaw(0.0f, -1.5708f, 0.0f) * XMMatrixTranslation(20.0f, 0.0f, 0.0f));
+	XMStoreFloat4x4(&gridRitem->World, XMMatrixScaling(1.5f, 0.5f, 1.5f) * XMMatrixRotationRollPitchYaw(0.0f, -1.5708f, 0.0f) * XMMatrixTranslation(20.0f, 0.0f, 0.0f));
 	XMStoreFloat4x4(&gridRitem->TexTransform, XMMatrixScaling(5.0f, 5.0f, 1.0f) );
 	gridRitem->ObjCBIndex = 0;
 	gridRitem->Mat = mMaterials["grass"].get();
@@ -2529,7 +2545,7 @@ void CastleDesign::BuildRenderItems()
 
 	++objCBIndex;
 	auto wavesRitem = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&wavesRitem->World, XMMatrixScaling(0.6f, 0.6f, 0.6f)* XMMatrixTranslation(20.0f, -3.0f, 0.0f));
+	XMStoreFloat4x4(&wavesRitem->World, XMMatrixScaling(1.6f, 0.6f, 1.6f)* XMMatrixTranslation(20.0f, -3.0f, 0.0f));
 
 	XMStoreFloat4x4(&wavesRitem->TexTransform, XMMatrixScaling(5.0f, 5.0f, 1.0f));
 	wavesRitem->ObjCBIndex = objCBIndex;
@@ -2586,13 +2602,13 @@ void CastleDesign::BuildRenderItems()
 			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(1.0f, 6.0f, 80.0f) * XMMatrixTranslation(-20.0f, -3.01f, 0.0f));
 			break;
 		case 1:
-			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(1.0f, 6.0f, 80.0f) * XMMatrixTranslation(60.0f, -3.01f, 0.0f));
+			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(85.0f, 6.0f, 10.0f) * XMMatrixTranslation(60.0f, -3.01f, 0.0f));
 			break;
 		case 2:
-			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(80.0f, 6.0f, 1.0f) * XMMatrixTranslation(20.0f, -3.01f, 40.0f));
+			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(85.0f, 9.0f, 1.0f) * XMMatrixTranslation(60.0f, -3.01f, 5.0f));
 			break;
 		case 3:
-			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(80.0f, 6.0f, 1.0f) * XMMatrixTranslation(20.0f, -3.01f, -40.0f));
+			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(85.0f, 9.0f, 1.0f) * XMMatrixTranslation(60.0f, -3.01f, -5.0f));
 			break;
 		}
 		
@@ -2623,7 +2639,7 @@ void CastleDesign::BuildRenderItems()
 	door->ObjCBIndex = objCBIndex;
 
 	door->Geo = mGeometries["shapeGeo"].get();
-	door->Mat = mMaterials["bricks0"].get();
+	door->Mat = mMaterials["wirefence"].get();
 	door->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	door->IndexCount = door->Geo->DrawArgs["box"].IndexCount;
@@ -2641,10 +2657,12 @@ void CastleDesign::BuildRenderItems()
 		{
 			if(tilemap[row][col] != '0')
 				++objCBIndex;
-			TileMapDrawing(tilemap[row][col], row*2, 0, col*2, objCBIndex);
+			TileMapDrawing(tilemap[row][col], row*4, 0, col*4, objCBIndex);
 		}
 	}
+	++objCBIndex;
 	
+
 
 
 }
@@ -2692,8 +2710,8 @@ void CastleDesign::TileMapDrawing(char key, float offsetX, float offsetY, float 
 	case '1':
 		auto boxRitem = std::make_unique<RenderItem>();
 
-		XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(2.0f, 15.0f, 2.0f) *
-			XMMatrixTranslation(61.0f + offsetX, 7.5f + offsetY, offsetZ -20.0f));
+		XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(4.0f, 10.0f, 4.0f) *
+			XMMatrixTranslation(89.0f + offsetX, 5.0f + offsetY, offsetZ -35.0f));
 
 		boxRitem->ObjCBIndex = index;
 
