@@ -18,8 +18,8 @@ using namespace DirectX::PackedVector;
 
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "D3D12.lib")
-#define tileMapWidth 20
-#define tileMapHeight 40
+#define tileMapWidth 40
+#define tileMapHeight 20
 const int gNumFrameResources = 3;
 
 // Lightweight structure stores parameters to draw a shape.  This will
@@ -2641,9 +2641,10 @@ void CastleDesign::BuildRenderItems()
 		{
 			if(tilemap[row][col] != '0')
 				++objCBIndex;
-			TileMapDrawing(tilemap[row][col], row, 0, col, objCBIndex);
+			TileMapDrawing(tilemap[row][col], row*2, 0, col*2, objCBIndex);
 		}
 	}
+	
 
 
 }
@@ -2691,8 +2692,8 @@ void CastleDesign::TileMapDrawing(char key, float offsetX, float offsetY, float 
 	case '1':
 		auto boxRitem = std::make_unique<RenderItem>();
 
-		XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(1.0f, 3.0f, 1.0f) *
-			XMMatrixTranslation(0.0f + offsetX, 0.0f + offsetY, 0.0f + offsetZ));
+		XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(2.0f, 15.0f, 2.0f) *
+			XMMatrixTranslation(61.0f + offsetX, 7.5f + offsetY, offsetZ -20.0f));
 
 		boxRitem->ObjCBIndex = index;
 
