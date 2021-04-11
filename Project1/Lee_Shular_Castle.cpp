@@ -254,8 +254,8 @@ void CastleDesign::OnResize()
 	mCamera.SetLens(0.25f * MathHelper::Pi, AspectRatio(), 1.0f, 1000.0f);
 	
 	// The window resized, so update the aspect ratio and recompute the projection matrix.
-
-	BoundingBox::CreateFromPoints(mCamBound, mCamera.GetPosition(), mCamera.GetPosition());	
+	BoundingBox::CreateFromPoints(mCamBound, size_t(10), &mCamera.GetPosition3f(), size_t(1));
+	
 }
 
 void CastleDesign::Update(const GameTimer& gt)
@@ -472,7 +472,7 @@ void CastleDesign::UpdateObjectCBs(const GameTimer& gt)
 			mCamBound.Transform(a, cam);
 			//mCamBound.Transform(localSpaceFrustum, viewToLocal);
 			
-			if (mCamBound.Contains(e->Bounds) == DirectX::DISJOINT)
+			if (mCamBound.Intersects(e->Bounds))
 			{
 				OutputDebugStringA("collision");
 			}
@@ -2759,7 +2759,7 @@ void CastleDesign::BuildRenderItems()
 			TileMapDrawing(tilemap[row][col], row*4, 0, col*4, objCBIndex);
 			if (row == 39 && col == 0)
 			{
-				mCamera.SetPosition(89.0f + row * 4, 1, col * 4 - 35.0f);
+				mCamera.SetPosition(0, 20, 0);
 				mCamera.RotateY(-1.5708);
 			}
 		}
@@ -2773,7 +2773,7 @@ void CastleDesign::BuildRenderItems()
 	//XMStoreFloat4x4(&camboxRitem->World, XMMatrixScaling(1.0f, 2.0f, 1.0f) * XMMatrixTranslation(x, y, z));
 
 	//camboxRitem->ObjCBIndex = objCBIndex;
-
+	
 	//camboxRitem->Geo = mGeometries["shapeGeo"].get();
 	//camboxRitem->Mat = mMaterials["bricks0"].get();
 	//camboxRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
@@ -2840,7 +2840,8 @@ void CastleDesign::TileMapDrawing(char key, float offsetX, float offsetY, float 
 		boxRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		boxRitem->IndexCount = boxRitem->Geo->DrawArgs["box"].IndexCount;
 		boxRitem->Bounds = boxRitem->Geo->DrawArgs["box"].Bounds;
-		
+		XMMATRIX temp = XMLoadFloat4x4(&boxRitem->World);
+		boxRitem->Bounds.Transform(boxRitem->Bounds, temp);
 		boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs["box"].StartIndexLocation;
 
 		boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
