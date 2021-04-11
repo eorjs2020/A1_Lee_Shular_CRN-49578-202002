@@ -97,7 +97,7 @@ private:
 	void UpdateMaterialCBs(const GameTimer& gt);
 	void UpdateMainPassCB(const GameTimer& gt);
 	void UpdateWaves(const GameTimer& gt); 
-
+	
 	void LoadTextures();
     void BuildRootSignature();
 	void BuildDescriptorHeaps();
@@ -112,6 +112,8 @@ private:
     void BuildRenderItems();
     void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems);
 	void TileMapDrawing(char key, float offsetX, float offsetY, float offsetZ, int index);
+
+	bool CollisionDetection(char type, float d);
 	std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> GetStaticSamplers();
 
   
@@ -405,17 +407,18 @@ void CastleDesign::OnKeyboardInput(const GameTimer& gt)
 	const float dt = gt.DeltaTime();
 
 	//GetAsyncKeyState returns a short (2 bytes)
-	if (GetAsyncKeyState('W') & 0x8000 && !mCollision) //most significant bit (MSB) is 1 when key is pressed (1000 000 000 000)
+	if (GetAsyncKeyState('W') & 0x8000 && !CollisionDetection( 'W',10.0f * dt )) //most significant bit (MSB) is 1 when key is pressed (1000 000 000 000)
 		mCamera.Walk(10.0f * dt);
 	
-	if (GetAsyncKeyState('S') & 0x8000 && !mCollision)
+	if (GetAsyncKeyState('S') & 0x8000 && !CollisionDetection('S', -10.0f * dt))
 		mCamera.Walk(-10.0f * dt);
 
-	if (GetAsyncKeyState('A') & 0x8000 && !mCollision)
+	if (GetAsyncKeyState('A') & 0x8000 && !CollisionDetection('A', -10.0f * dt))
 		mCamera.Strafe(-10.0f * dt);
 
-	if (GetAsyncKeyState('D') & 0x8000 && !mCollision)
+	if (GetAsyncKeyState('D') & 0x8000 && !CollisionDetection('D', 10.0f * dt))
 		mCamera.Strafe(10.0f * dt);
+	
 
 	mCamera.UpdateViewMatrix();
 	// Making Switching system with keyboard 1.
@@ -423,6 +426,55 @@ void CastleDesign::OnKeyboardInput(const GameTimer& gt)
 		mLava = true;
 	else
 		mLava = false;
+}
+
+bool CastleDesign::CollisionDetection(char type, float d)
+{
+	char a = type;
+	XMFLOAT3 temp;
+	XMVECTOR s;
+	XMVECTOR l;
+	XMVECTOR p;
+	XMVECTOR r;
+	switch (a) 
+	{
+	case 'W':
+		s = XMVectorReplicate(d);
+		l = XMLoadFloat3(&mCamera.GetLook3f());
+		p = XMLoadFloat3(&mCamera.GetPosition3f());
+		XMStoreFloat3(&temp, XMVectorMultiplyAdd(s, l, p));				
+		break;
+	case 'S':
+		s = XMVectorReplicate(d);
+		l = XMLoadFloat3(&mCamera.GetLook3f());
+		p = XMLoadFloat3(&mCamera.GetPosition3f());
+		XMStoreFloat3(&temp, XMVectorMultiplyAdd(s, l, p));
+		break;
+	case 'A':
+		s = XMVectorReplicate(d);
+		r = XMLoadFloat3(&mCamera.GetRight3f());
+		p = XMLoadFloat3(&mCamera.GetPosition3f());
+		XMStoreFloat3(&temp, XMVectorMultiplyAdd(s, r, p));
+		break;
+	case 'D':
+		s = XMVectorReplicate(d);
+		r = XMLoadFloat3(&mCamera.GetRight3f());
+		p = XMLoadFloat3(&mCamera.GetPosition3f());
+		XMStoreFloat3(&temp, XMVectorMultiplyAdd(s, r, p));
+		break;
+
+	}
+	for (auto& e : mAllRitems)
+	{
+		XMVECTOR rt = XMLoadFloat3(&XMFLOAT3(temp.x + 1.5f, temp.y + 1.5f, temp.z + 1.5f));
+		XMVECTOR ld = XMLoadFloat3(&XMFLOAT3(temp.x - 1.5f, temp.y - 1.5f, temp.z - 1.5f));
+		BoundingBox::CreateFromPoints(mCamBound, rt, ld);
+		if (mCamBound.Contains(e->Bounds) != DirectX::DISJOINT)
+		{
+			return true;
+		}
+	}
+	return false;
 }
  
 void CastleDesign::UpdateCamera(const GameTimer& gt)
@@ -483,30 +535,17 @@ void CastleDesign::UpdateObjectCBs(const GameTimer& gt)
 			e->NumFramesDirty--;			
 		}
 		//BoundingBox::CreateFromPoints(mCamBound, size_t(1), &mCamera.GetPosition3f(), sizeof(Vertex));
-						
-		XMVECTOR r = XMLoadFloat3(&XMFLOAT3(mCamera.GetPosition3f().x + 1.5f, mCamera.GetPosition3f().y + 1.5f, mCamera.GetPosition3f().z + 1.5f));
-		XMVECTOR l = XMLoadFloat3(&XMFLOAT3(mCamera.GetPosition3f().x - 1.5f, mCamera.GetPosition3f().y - 1.5f, mCamera.GetPosition3f().z - 1.5f));
-		BoundingBox::CreateFromPoints(mCamBound, r, l);
-		if (mCamBound.Contains(e->Bounds) != DirectX::DISJOINT)
-		{
-			++isCollision;			
-		}
 		std::wostringstream outs;
 		outs.precision(6);
 		outs << L"Instancing and Culling Demo" <<
 			L"    " << mCamera.GetPosition3f().z;
 		mMainWndCaption = outs.str();
 	}
-	if (isCollision > 0)
-	{
-		mCollision = true;
-	}
-	else
-	{
-		mCollision = false;
-	}
+	
 		
 }
+
+
 
 void CastleDesign::UpdateMaterialCBs(const GameTimer& gt)
 {
