@@ -263,7 +263,7 @@ void CastleDesign::OnResize()
 
 void CastleDesign::Update(const GameTimer& gt)
 {
-
+	
 	OnKeyboardInput(gt);
 	UpdateCamera(gt);
     // Cycle through the circular frame resource array.
@@ -285,8 +285,9 @@ void CastleDesign::Update(const GameTimer& gt)
 	UpdateMaterialCBs(gt);
 	UpdateMainPassCB(gt);
     UpdateWaves(gt);
+	//To lock Y position and allow the camera to change pitch
+	mCamera.SetPosition({mCamera.GetPosition3f().x,2.0f,mCamera.GetPosition3f().z});
 	
-
 }
 
 void CastleDesign::Draw(const GameTimer& gt)
@@ -990,7 +991,7 @@ void CastleDesign::BuildLandGeometry()
 	// Making level.
 	// half of the grid's y postion set it to down position.
 	 
-    for(size_t i = 0; i < (grid.Vertices.size() / 4); ++i)
+    for(size_t i = 0; i < (grid.Vertices.size() / 5); ++i)
     {
         auto& p = grid.Vertices[i].Position;
         vertices[i].Pos = p;
@@ -1938,8 +1939,8 @@ void CastleDesign::BuildMaterials()
 void CastleDesign::BuildRenderItems()
 {
 	auto gridRitem = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&gridRitem->World, XMMatrixScaling(1.5f, 0.5f, 1.5f) * XMMatrixRotationRollPitchYaw(0.0f, -1.5708f, 0.0f) * XMMatrixTranslation(20.0f, 0.0f, 0.0f));
-	XMStoreFloat4x4(&gridRitem->TexTransform, XMMatrixScaling(5.0f, 5.0f, 1.0f) );
+	XMStoreFloat4x4(&gridRitem->World, XMMatrixScaling(2.0f, 0.5f, 2.5f) * XMMatrixRotationRollPitchYaw(0.0f, 1.5708f, 0.0f) * XMMatrixTranslation(105.0f, 0.0f, 0.0f));
+	XMStoreFloat4x4(&gridRitem->TexTransform, XMMatrixScaling(10.0f, 15.0f, 1.0f) );
 	gridRitem->ObjCBIndex = 0;
 	gridRitem->Mat = mMaterials["grass"].get();
 	gridRitem->Geo = mGeometries["landGeo"].get();	
@@ -2702,9 +2703,9 @@ void CastleDesign::BuildRenderItems()
 
 	++objCBIndex;
 	auto wavesRitem = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&wavesRitem->World, XMMatrixScaling(1.6f, 0.6f, 1.6f)* XMMatrixTranslation(20.0f, -3.0f, 0.0f));
+	XMStoreFloat4x4(&wavesRitem->World, XMMatrixScaling(2.5f, 0.6f, 2.5f)* XMMatrixTranslation(20.0f, -3.0f, 0.0f));
 
-	XMStoreFloat4x4(&wavesRitem->TexTransform, XMMatrixScaling(5.0f, 5.0f, 1.0f));
+	XMStoreFloat4x4(&wavesRitem->TexTransform, XMMatrixScaling(7.0f, 7.0f, 1.0f));
 	wavesRitem->ObjCBIndex = objCBIndex;
 	wavesRitem->Mat = mMaterials["water"].get();
 	wavesRitem->Geo = mGeometries["waterGeo"].get();
@@ -2759,13 +2760,13 @@ void CastleDesign::BuildRenderItems()
 			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(1.0f, 6.0f, 80.0f) * XMMatrixTranslation(-20.0f, -3.01f, 0.0f));
 			break;
 		case 1:
-			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(85.0f, 6.0f, 10.0f) * XMMatrixTranslation(60.0f, -3.01f, 0.0f));
+			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(95.0f, 6.0f, 10.0f) * XMMatrixTranslation(65.0f, -3.01f, 0.0f));
 			break;
 		case 2:
-			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(85.0f, 9.0f, 1.0f) * XMMatrixTranslation(60.0f, -3.01f, 5.0f));
+			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(95.0f, 7.5f, 1.0f) * XMMatrixTranslation(65.0f, -3.01f, 5.0f));
 			break;
 		case 3:
-			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(85.0f, 9.0f, 1.0f) * XMMatrixTranslation(60.0f, -3.01f, -5.0f));
+			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(95.0f, 7.5f, 1.0f) * XMMatrixTranslation(65.0f, -3.01f, -5.0f));
 			break;
 		}
 		
@@ -2817,7 +2818,7 @@ void CastleDesign::BuildRenderItems()
 			TileMapDrawing(tilemap[row][col], row*4, 0, col*4, objCBIndex);
 			if (row == 39 && col == 1)
 			{
-				mCamera.SetPosition(89.0f + row * 4, 1, col * 4 - 35.0f);
+				mCamera.SetPosition(124.0f + row * 4, 1, col * 4 - 35.0f);
 				mCamera.RotateY(-1.5708);
 			}
 		}
@@ -2870,7 +2871,7 @@ void CastleDesign::TileMapDrawing(char key, float offsetX, float offsetY, float 
 		auto boxRitem = std::make_unique<RenderItem>();
 
 		XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(4.0f, 10.0f, 4.0f) *
-			XMMatrixTranslation(89.0f + offsetX, 5.0f + offsetY, offsetZ -35.0f));
+			XMMatrixTranslation(124.0f + offsetX, 5.0f + offsetY, offsetZ -35.0f));
 
 		boxRitem->ObjCBIndex = index;
 
