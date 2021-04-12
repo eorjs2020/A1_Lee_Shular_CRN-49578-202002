@@ -467,8 +467,8 @@ bool CastleDesign::CollisionDetection(char type, float d)
 	}
 	for (auto& e : mAllRitems)
 	{
-		XMVECTOR rt = XMLoadFloat3(&XMFLOAT3(temp.x + 1.5f, temp.y + 1.5f, temp.z + 1.5f));
-		XMVECTOR ld = XMLoadFloat3(&XMFLOAT3(temp.x - 1.5f, temp.y - 1.5f, temp.z - 1.5f));
+		XMVECTOR rt = XMLoadFloat3(&XMFLOAT3(temp.x + 1.5f, temp.y + 1.5f, temp.z + 1.0f));
+		XMVECTOR ld = XMLoadFloat3(&XMFLOAT3(temp.x - 1.5f, temp.y - 1.5f, temp.z - 0.5f));
 		BoundingBox::CreateFromPoints(mCamBound, rt, ld);
 		if (mCamBound.Contains(e->Bounds) != DirectX::DISJOINT)
 		{
@@ -2758,29 +2758,35 @@ void CastleDesign::BuildRenderItems()
 		{
 		case 0:
 			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(1.0f, 6.0f, 80.0f) * XMMatrixTranslation(-20.0f, -3.01f, 0.0f));
+			XMStoreFloat4x4(&outsideBox->TexTransform, XMMatrixScaling(15.0f, 1.0f, 1.0f));
 			break;
 		case 1:
 			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(95.0f, 6.0f, 10.0f) * XMMatrixTranslation(65.0f, -3.01f, 0.0f));
+			XMStoreFloat4x4(&outsideBox->TexTransform, XMMatrixScaling(15.0f, 1.0f, 1.0f));
 			break;
 		case 2:
-			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(95.0f, 7.5f, 1.0f) * XMMatrixTranslation(65.0f, -3.01f, 5.0f));
+			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(100.0f, 7.5f, 1.0f) * XMMatrixTranslation(66.0f, -3.01f, 5.0f));
+			XMStoreFloat4x4(&outsideBox->TexTransform, XMMatrixScaling(15.0f, 0.5f, 1.0f));
 			break;
 		case 3:
-			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(95.0f, 7.5f, 1.0f) * XMMatrixTranslation(65.0f, -3.01f, -5.0f));
+			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(100.0f, 7.5f, 1.0f) * XMMatrixTranslation(66.0f, -3.01f, -5.0f));
+			XMStoreFloat4x4(&outsideBox->TexTransform, XMMatrixScaling(15.0f, 0.5f, 1.0f));
 			break;
 		}
 		
-		XMStoreFloat4x4(&outsideBox->TexTransform, XMMatrixScaling(7.0f, 3.0f, 1.0f));
+		
 		outsideBox->ObjCBIndex = objCBIndex++;
 
 		outsideBox->Geo = mGeometries["shapeGeo"].get();
-		outsideBox->Mat = mMaterials["grass"].get();
+		outsideBox->Mat = mMaterials["bricks0"].get();
 		outsideBox->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		
 		outsideBox->IndexCount = outsideBox->Geo->DrawArgs["box"].IndexCount;
-
+		
+		outsideBox->Bounds = outsideBox->Geo->DrawArgs["box"].Bounds;
+		XMMATRIX temp = XMLoadFloat4x4(&outsideBox->World);
+		outsideBox->Bounds.Transform(outsideBox->Bounds, temp);
+		
 		outsideBox->StartIndexLocation = outsideBox->Geo->DrawArgs["box"].StartIndexLocation;
-
 		outsideBox->BaseVertexLocation = outsideBox->Geo->DrawArgs["box"].BaseVertexLocation;
 		mRitemLayer[(int)RenderLayer::AlphaTested].push_back(outsideBox.get());
 		mAllRitems.push_back(std::move(outsideBox));
@@ -2818,7 +2824,7 @@ void CastleDesign::BuildRenderItems()
 			TileMapDrawing(tilemap[row][col], row*4, 0, col*4, objCBIndex);
 			if (row == 39 && col == 1)
 			{
-				mCamera.SetPosition(124.0f + row * 4, 1, col * 4 - 35.0f);
+				mCamera.SetPosition(124.0f + row * 4, 1, col * 4 - 34.0f);
 				mCamera.RotateY(-1.5708);
 			}
 		}
@@ -2871,7 +2877,7 @@ void CastleDesign::TileMapDrawing(char key, float offsetX, float offsetY, float 
 		auto boxRitem = std::make_unique<RenderItem>();
 
 		XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(4.0f, 10.0f, 4.0f) *
-			XMMatrixTranslation(124.0f + offsetX, 5.0f + offsetY, offsetZ -35.0f));
+			XMMatrixTranslation(114.0f + offsetX, 5.0f + offsetY, offsetZ -34.0f));
 
 		boxRitem->ObjCBIndex = index;
 
