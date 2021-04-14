@@ -8,10 +8,13 @@
 #include "../../Common/d3dApp.h"
 #include "../../Common/MathHelper.h"
 #include "../../Common/UploadBuffer.h"
+#include "../../Common/Camera.h"
+#include <DirectXCollision.h>
 #include "GeometryGenerator.h"
 #include "FrameResource.h"
 #include "Waves.h"
 #include <fstream>
+
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
 using namespace DirectX::PackedVector;
@@ -25,8 +28,11 @@ const int gNumFrameResources = 3;
 // Lightweight structure stores parameters to draw a shape.  This will
 // vary from app-to-app.
 struct RenderItem
-{
+{	
 	RenderItem() = default;
+
+	bool Visible = true;
+	BoundingBox Bounds;
 
     // World matrix of the shape that describes the object's local space
     // relative to the world space, which defines the position, orientation,
@@ -49,7 +55,7 @@ struct RenderItem
 
     // Primitive topology.
     D3D12_PRIMITIVE_TOPOLOGY PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-
+	
     // DrawIndexedInstanced parameters.
     UINT IndexCount = 0;
     UINT StartIndexLocation = 0;
@@ -91,7 +97,7 @@ private:
 	void UpdateMaterialCBs(const GameTimer& gt);
 	void UpdateMainPassCB(const GameTimer& gt);
 	void UpdateWaves(const GameTimer& gt); 
-
+	
 	void LoadTextures();
     void BuildRootSignature();
 	void BuildDescriptorHeaps();
@@ -106,6 +112,8 @@ private:
     void BuildRenderItems();
     void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems);
 	void TileMapDrawing(char key, float offsetX, float offsetY, float offsetZ, int index);
+
+	bool CollisionDetection(char type, float d);
 	std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> GetStaticSamplers();
 
   
@@ -142,10 +150,8 @@ private:
 
     PassConstants mMainPassCB;
 
-	XMFLOAT3 mEyePos = { 0.0f, 0.0f, 0.0f };
-	XMFLOAT4X4 mView = MathHelper::Identity4x4();
-	XMFLOAT4X4 mProj = MathHelper::Identity4x4();
-
+	Camera mCamera;
+	BoundingBox mCamBound;
     float mTheta = 1.5f*XM_PI;
     float mPhi = XM_PIDIV2 - 0.1f;
     float mRadius = 50.0f;
@@ -154,6 +160,7 @@ private:
 	bool mLava; 
 	int timer = 0;
 	bool timercheck;
+	bool mCollision = false;
 };
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
@@ -217,8 +224,8 @@ bool CastleDesign::Initialize()
 				tilemap[row][col] = key;
 			}
 		}
-	}
-
+	}	
+	mCamera.SetPosition(250.0f, 15.0f, -80.0f);
 	LoadTextures();
     BuildRootSignature();
 	BuildDescriptorHeaps();
@@ -239,28 +246,30 @@ bool CastleDesign::Initialize()
 
     // Wait until initialization is complete.
     FlushCommandQueue();
-
+	
+	
     return true;
 }
  
 void CastleDesign::OnResize()
 {
     D3DApp::OnResize();
-
-    // The window resized, so update the aspect ratio and recompute the projection matrix.
-    XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f*MathHelper::Pi, AspectRatio(), 1.0f, 1000.0f);
-    XMStoreFloat4x4(&mProj, P);
+	mCamera.SetLens(0.25f * MathHelper::Pi, AspectRatio(), 1.0f, 1000.0f);
+	
+	// The window resized, so update the aspect ratio and recompute the projection matrix.
+	BoundingBox::CreateFromPoints(mCamBound, size_t(8), &mCamera.GetPosition3f(), sizeof(Vertex));
+	
 }
 
 void CastleDesign::Update(const GameTimer& gt)
 {
-
+	
 	OnKeyboardInput(gt);
 	UpdateCamera(gt);
     // Cycle through the circular frame resource array.
     mCurrFrameResourceIndex = (mCurrFrameResourceIndex + 1) % gNumFrameResources;
     mCurrFrameResource = mFrameResources[mCurrFrameResourceIndex].get();
-
+	
     // Has the GPU finished processing the commands of the current frame resource?
     // If not, wait until the GPU has completed commands up to this fence point.
     if(mCurrFrameResource->Fence != 0 && mFence->GetCompletedValue() < mCurrFrameResource->Fence)
@@ -276,7 +285,10 @@ void CastleDesign::Update(const GameTimer& gt)
 	UpdateMaterialCBs(gt);
 	UpdateMainPassCB(gt);
     UpdateWaves(gt);
-
+	//To lock Y position and allow the camera to change pitch
+	if(!mCollision)
+		mCamera.SetPosition({mCamera.GetPosition3f().x,2.0f,mCamera.GetPosition3f().z});
+	
 }
 
 void CastleDesign::Draw(const GameTimer& gt)
@@ -371,31 +383,20 @@ void CastleDesign::OnMouseUp(WPARAM btnState, int x, int y)
 
 void CastleDesign::OnMouseMove(WPARAM btnState, int x, int y)
 {
-    if((btnState & MK_LBUTTON) != 0)
-    {
-        // Make each pixel correspond to a quarter of a degree.
-        float dx = XMConvertToRadians(0.25f*static_cast<float>(x - mLastMousePos.x));
-        float dy = XMConvertToRadians(0.25f*static_cast<float>(y - mLastMousePos.y));
+	if ((btnState & MK_LBUTTON) != 0)
+	{
+		// Make each pixel correspond to a quarter of a degree.
+		float dx = XMConvertToRadians(0.25f * static_cast<float>(x - mLastMousePos.x));
+		float dy = XMConvertToRadians(0.25f * static_cast<float>(y - mLastMousePos.y));
 
-        // Update angles based on input to orbit camera around box.
-        mTheta += dx;
-        mPhi += dy;
+		//step4: Instead of updating the angles based on input to orbit camera around scene, 
+		//we rotate the camera’s look direction:
+		//mTheta += dx;
+		//mPhi += dy;
 
-        // Restrict the angle mPhi.
-        mPhi = MathHelper::Clamp(mPhi, 0.1f, MathHelper::Pi - 0.1f);
-    }
-    else if((btnState & MK_RBUTTON) != 0)
-    {
-        // Make each pixel correspond to 0.2 unit in the scene.
-        float dx = 0.2f*static_cast<float>(x - mLastMousePos.x);
-        float dy = 0.2f*static_cast<float>(y - mLastMousePos.y);
-
-        // Update the camera radius based on input.
-        mRadius += dx - dy;
-
-        // Restrict the radius.
-        mRadius = MathHelper::Clamp(mRadius, 5.0f, 150.0f);
-    }
+		mCamera.Pitch(dy);
+		mCamera.RotateY(dx);
+	}
 
     mLastMousePos.x = x;
     mLastMousePos.y = y;
@@ -403,27 +404,90 @@ void CastleDesign::OnMouseMove(WPARAM btnState, int x, int y)
  
 void CastleDesign::OnKeyboardInput(const GameTimer& gt)
 {
+	//step3: we handle keyboard input to move the camera:
+
+	const float dt = gt.DeltaTime();
+
+	//GetAsyncKeyState returns a short (2 bytes)
+	if (GetAsyncKeyState('W') & 0x8000 && !CollisionDetection( 'W',10.0f * dt )) //most significant bit (MSB) is 1 when key is pressed (1000 000 000 000)
+		mCamera.Walk(10.0f * dt);
+	
+	if (GetAsyncKeyState('S') & 0x8000 && !CollisionDetection('S', -10.0f * dt))
+		mCamera.Walk(-10.0f * dt);
+
+	if (GetAsyncKeyState('A') & 0x8000 && !CollisionDetection('A', -10.0f * dt))
+		mCamera.Strafe(-10.0f * dt);
+
+	if (GetAsyncKeyState('D') & 0x8000 && !CollisionDetection('D', 10.0f * dt))
+		mCamera.Strafe(10.0f * dt);
+
+	if (GetKeyState('1') & 0x8000)
+		mCollision = !mCollision;
+
+	mCamera.UpdateViewMatrix();
 	// Making Switching system with keyboard 1.
-	if (GetAsyncKeyState('1') & 0x8000)
+	if (GetAsyncKeyState('0') & 0x8000)
 		mLava = true;
 	else
 		mLava = false;
 }
+
+bool CastleDesign::CollisionDetection(char type, float d)
+{
+	if (!mCollision)
+	{
+		char a = type;
+		XMFLOAT3 temp;
+		XMVECTOR s;
+		XMVECTOR l;
+		XMVECTOR p;
+		XMVECTOR r;
+		switch (a)
+		{
+		case 'W':
+			s = XMVectorReplicate(d);
+			l = XMLoadFloat3(&mCamera.GetLook3f());
+			p = XMLoadFloat3(&mCamera.GetPosition3f());
+			XMStoreFloat3(&temp, XMVectorMultiplyAdd(s, l, p));
+			break;
+		case 'S':
+			s = XMVectorReplicate(d);
+			l = XMLoadFloat3(&mCamera.GetLook3f());
+			p = XMLoadFloat3(&mCamera.GetPosition3f());
+			XMStoreFloat3(&temp, XMVectorMultiplyAdd(s, l, p));
+			break;
+		case 'A':
+			s = XMVectorReplicate(d);
+			r = XMLoadFloat3(&mCamera.GetRight3f());
+			p = XMLoadFloat3(&mCamera.GetPosition3f());
+			XMStoreFloat3(&temp, XMVectorMultiplyAdd(s, r, p));
+			break;
+		case 'D':
+			s = XMVectorReplicate(d);
+			r = XMLoadFloat3(&mCamera.GetRight3f());
+			p = XMLoadFloat3(&mCamera.GetPosition3f());
+			XMStoreFloat3(&temp, XMVectorMultiplyAdd(s, r, p));
+			break;
+
+		}
+		for (auto& e : mAllRitems)
+		{
+			XMVECTOR rt = XMLoadFloat3(&XMFLOAT3(temp.x + 1.5f, temp.y + 1.5f, temp.z + 1.0f));
+			XMVECTOR ld = XMLoadFloat3(&XMFLOAT3(temp.x - 1.5f, temp.y - 1.5f, temp.z - 0.5f));
+			BoundingBox::CreateFromPoints(mCamBound, rt, ld);
+			if (mCamBound.Contains(e->Bounds) != DirectX::DISJOINT)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	return false;
+}
  
 void CastleDesign::UpdateCamera(const GameTimer& gt)
 {
-	// Convert Spherical to Cartesian coordinates.
-	mEyePos.x = mRadius*sinf(mPhi)*cosf(mTheta);
-	mEyePos.z = mRadius*sinf(mPhi)*sinf(mTheta);
-	mEyePos.y = mRadius*cosf(mPhi);
 
-	// Build the view matrix.
-	XMVECTOR pos = XMVectorSet(mEyePos.x, mEyePos.y, mEyePos.z, 1.0f);
-	XMVECTOR target = XMVectorZero();
-	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
-	XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
-	XMStoreFloat4x4(&mView, view);
 }
 
 void CastleDesign::AnimateMaterials(const GameTimer& gt)
@@ -451,6 +515,7 @@ void CastleDesign::AnimateMaterials(const GameTimer& gt)
 
 void CastleDesign::UpdateObjectCBs(const GameTimer& gt)
 {
+	int isCollision = 0;
 	auto currObjectCB = mCurrFrameResource->ObjectCB.get();
 	for(auto& e : mAllRitems)
 	{
@@ -460,7 +525,14 @@ void CastleDesign::UpdateObjectCBs(const GameTimer& gt)
 		{
 			XMMATRIX world = XMLoadFloat4x4(&e->World);
 			XMMATRIX texTransform = XMLoadFloat4x4(&e->TexTransform);
-
+			
+			/*XMFLOAT4X4 camWorld;
+			XMStoreFloat4x4(&camWorld, XMMatrixTranslation(mCamera.GetPosition3f().x, mCamera.GetPosition3f().y, mCamera.GetPosition3f().z));
+			XMMATRIX cam = XMLoadFloat4x4(&camWorld);
+			mCamBound.Transform(mCamBound, cam);*/
+			
+			//mCamBound.Transform(localSpaceFrustum, viewToLocal);			
+			
 			ObjectConstants objConstants;
 			XMStoreFloat4x4(&objConstants.World, XMMatrixTranspose(world));
 			XMStoreFloat4x4(&objConstants.TexTransform, XMMatrixTranspose(texTransform));
@@ -468,10 +540,20 @@ void CastleDesign::UpdateObjectCBs(const GameTimer& gt)
 			currObjectCB->CopyData(e->ObjCBIndex, objConstants);
 
 			// Next FrameResource need to be updated too.
-			e->NumFramesDirty--;
+			e->NumFramesDirty--;			
 		}
+		//BoundingBox::CreateFromPoints(mCamBound, size_t(1), &mCamera.GetPosition3f(), sizeof(Vertex));
+		std::wostringstream outs;
+		outs.precision(6);
+		outs << L"Instancing and Culling Demo" <<
+			L"    " << mCamera.GetPosition3f().z;
+		mMainWndCaption = outs.str();
 	}
+	
+		
 }
+
+
 
 void CastleDesign::UpdateMaterialCBs(const GameTimer& gt)
 {
@@ -501,8 +583,8 @@ void CastleDesign::UpdateMaterialCBs(const GameTimer& gt)
 
 void CastleDesign::UpdateMainPassCB(const GameTimer& gt)
 {
-	XMMATRIX view = XMLoadFloat4x4(&mView);
-	XMMATRIX proj = XMLoadFloat4x4(&mProj);
+	XMMATRIX view = mCamera.GetView();
+	XMMATRIX proj = mCamera.GetProj();
 
 	XMMATRIX viewProj = XMMatrixMultiply(view, proj);
 	XMMATRIX invView = XMMatrixInverse(&XMMatrixDeterminant(view), view);
@@ -515,7 +597,7 @@ void CastleDesign::UpdateMainPassCB(const GameTimer& gt)
 	XMStoreFloat4x4(&mMainPassCB.InvProj, XMMatrixTranspose(invProj));
 	XMStoreFloat4x4(&mMainPassCB.ViewProj, XMMatrixTranspose(viewProj));
 	XMStoreFloat4x4(&mMainPassCB.InvViewProj, XMMatrixTranspose(invViewProj));
-	mMainPassCB.EyePosW = mEyePos;
+	mMainPassCB.EyePosW = mCamera.GetPosition3f();
 	mMainPassCB.RenderTargetSize = XMFLOAT2((float)mClientWidth, (float)mClientHeight);
 	mMainPassCB.InvRenderTargetSize = XMFLOAT2(1.0f / mClientWidth, 1.0f / mClientHeight);
 	mMainPassCB.NearZ = 1.0f;
@@ -868,7 +950,7 @@ void CastleDesign::BuildShadersAndInputLayouts()
 	const D3D_SHADER_MACRO alphaTestDefines[] =
 	{
 		"FOG", "1",
-
+		"ALPHA_TEST",
 		NULL, NULL
 	};
 	// Default shader.
@@ -916,7 +998,7 @@ void CastleDesign::BuildLandGeometry()
 	// Making level.
 	// half of the grid's y postion set it to down position.
 	 
-    for(size_t i = 0; i < (grid.Vertices.size() / 4); ++i)
+    for(size_t i = 0; i < (grid.Vertices.size() / 5); ++i)
     {
         auto& p = grid.Vertices[i].Position;
         vertices[i].Pos = p;
@@ -1119,7 +1201,7 @@ void CastleDesign::BuildShapeGeometry()
 
 
 	SubmeshGeometry boxSubmesh;
-
+	
 	boxSubmesh.IndexCount = (UINT)box.Indices32.size();
 
 	boxSubmesh.StartIndexLocation = boxIndexOffset;
@@ -1135,7 +1217,7 @@ void CastleDesign::BuildShapeGeometry()
 	gridSubmesh.StartIndexLocation = gridIndexOffset;
 
 	gridSubmesh.BaseVertexLocation = gridVertexOffset;
-
+	
 
 
 	SubmeshGeometry sphereSubmesh;
@@ -1251,7 +1333,11 @@ void CastleDesign::BuildShapeGeometry()
 
 	std::vector<Vertex> vertices(totalVertexCount);
 
+	XMFLOAT3 vMinf3(+MathHelper::Infinity, +MathHelper::Infinity, +MathHelper::Infinity);
+	XMFLOAT3 vMaxf3(-MathHelper::Infinity, -MathHelper::Infinity, -MathHelper::Infinity);
 
+	XMVECTOR vMin = XMLoadFloat3(&vMinf3);
+	XMVECTOR vMax = XMLoadFloat3(&vMaxf3);
 
 	UINT k = 0;
 
@@ -1261,9 +1347,16 @@ void CastleDesign::BuildShapeGeometry()
 		vertices[k].Pos = box.Vertices[i].Position;
 		vertices[k].Normal = box.Vertices[i].Normal;
 		vertices[k].TexC = box.Vertices[i].TexC;
+
+		XMVECTOR P = XMLoadFloat3(&vertices[k].Pos);
+		
+		vMin = XMVectorMin(vMin, P);
+		vMax = XMVectorMax(vMax, P);
 	}
-
-
+	BoundingBox boxbounds;	
+	XMStoreFloat3(&boxbounds.Center, 0.5f * (vMin + vMax));
+	XMStoreFloat3(&boxbounds.Extents, 0.5f * (vMax - vMin));
+	boxSubmesh.Bounds = boxbounds;
 
 	for (size_t i = 0; i < grid.Vertices.size(); ++i, ++k)
 
@@ -1271,8 +1364,15 @@ void CastleDesign::BuildShapeGeometry()
 		vertices[k].Pos = grid.Vertices[i].Position;
 		vertices[k].Normal = grid.Vertices[i].Normal;
 		vertices[k].TexC = grid.Vertices[i].TexC;
-	}
+		XMVECTOR P = XMLoadFloat3(&vertices[k].Pos);
 
+		vMin = XMVectorMin(vMin, P);
+		vMax = XMVectorMax(vMax, P);
+	}
+	BoundingBox gridbounds;
+	XMStoreFloat3(&gridbounds.Center, 0.5f * (vMin + vMax));
+	XMStoreFloat3(&gridbounds.Extents, 0.5f * (vMax - vMin));
+	gridSubmesh.Bounds = gridbounds;
 
 
 	for (size_t i = 0; i < sphere.Vertices.size(); ++i, ++k)
@@ -1281,8 +1381,15 @@ void CastleDesign::BuildShapeGeometry()
 		vertices[k].Pos = sphere.Vertices[i].Position;
 		vertices[k].Normal = sphere.Vertices[i].Normal;
 		vertices[k].TexC = sphere.Vertices[i].TexC;
-	}
+		XMVECTOR P = XMLoadFloat3(&vertices[k].Pos);
 
+		vMin = XMVectorMin(vMin, P);
+		vMax = XMVectorMax(vMax, P);
+	}
+	BoundingBox spherebounds;
+	XMStoreFloat3(&spherebounds.Center, 0.5f * (vMin + vMax));
+	XMStoreFloat3(&spherebounds.Extents, 0.5f * (vMax - vMin));
+	sphereSubmesh.Bounds = spherebounds;
 
 
 	for (size_t i = 0; i < cylinder.Vertices.size(); ++i, ++k)
@@ -1291,51 +1398,110 @@ void CastleDesign::BuildShapeGeometry()
 		vertices[k].Pos = cylinder.Vertices[i].Position;
 		vertices[k].Normal = cylinder.Vertices[i].Normal;
 		vertices[k].TexC = cylinder.Vertices[i].TexC;
+		XMVECTOR P = XMLoadFloat3(&vertices[k].Pos);
+
+		vMin = XMVectorMin(vMin, P);
+		vMax = XMVectorMax(vMax, P);
 	}
+
+	BoundingBox cylinderbounds;
+	XMStoreFloat3(&cylinderbounds.Center, 0.5f * (vMin + vMax));
+	XMStoreFloat3(&cylinderbounds.Extents, 0.5f * (vMax - vMin));
+	cylinderSubmesh.Bounds = cylinderbounds;
 
 	for (size_t i = 0; i < pyramid.Vertices.size(); ++i, ++k)
 	{
 		vertices[k].Pos = pyramid.Vertices[i].Position;
 		vertices[k].Normal = pyramid.Vertices[i].Normal;
 		vertices[k].TexC = pyramid.Vertices[i].TexC;
+		XMVECTOR P = XMLoadFloat3(&vertices[k].Pos);
+
+		vMin = XMVectorMin(vMin, P);
+		vMax = XMVectorMax(vMax, P);
 	}
+
+	BoundingBox pyramidbounds;
+	XMStoreFloat3(&pyramidbounds.Center, 0.5f * (vMin + vMax));
+	XMStoreFloat3(&pyramidbounds.Extents, 0.5f * (vMax - vMin));
+	pyramidSubmesh.Bounds = pyramidbounds;
 
 	for (size_t i = 0; i < cone.Vertices.size(); ++i, ++k)
 	{
 		vertices[k].Pos = cone.Vertices[i].Position;
 		vertices[k].Normal = cone.Vertices[i].Normal;
 		vertices[k].TexC = cone.Vertices[i].TexC;
+		XMVECTOR P = XMLoadFloat3(&vertices[k].Pos);
+
+		vMin = XMVectorMin(vMin, P);
+		vMax = XMVectorMax(vMax, P);
 	}
+
+	BoundingBox conebounds;
+	XMStoreFloat3(&conebounds.Center, 0.5f * (vMin + vMax));
+	XMStoreFloat3(&conebounds.Extents, 0.5f * (vMax - vMin));
+	coneSubmesh.Bounds = conebounds;
 
 	for (size_t i = 0; i < prism.Vertices.size(); ++i, ++k)
 	{
 		vertices[k].Pos = prism.Vertices[i].Position;
 		vertices[k].Normal = prism.Vertices[i].Normal;
 		vertices[k].TexC = prism.Vertices[i].TexC;
+		XMVECTOR P = XMLoadFloat3(&vertices[k].Pos);
+
+		vMin = XMVectorMin(vMin, P);
+		vMax = XMVectorMax(vMax, P);
 	}
+
+	BoundingBox prismbounds;
+	XMStoreFloat3(&prismbounds.Center, 0.5f * (vMin + vMax));
+	XMStoreFloat3(&prismbounds.Extents, 0.5f * (vMax - vMin));
+	prismSubmesh.Bounds = prismbounds;
 
 	for (size_t i = 0; i < diamond.Vertices.size(); ++i, ++k)
 	{
 		vertices[k].Pos = diamond.Vertices[i].Position;
 		vertices[k].Normal = diamond.Vertices[i].Normal;
 		vertices[k].TexC = diamond.Vertices[i].TexC;
-	}
+		XMVECTOR P = XMLoadFloat3(&vertices[k].Pos);
 
+		vMin = XMVectorMin(vMin, P);
+		vMax = XMVectorMax(vMax, P);
+	}
+	BoundingBox diamondbounds;
+	XMStoreFloat3(&diamondbounds.Center, 0.5f * (vMin + vMax));
+	XMStoreFloat3(&diamondbounds.Extents, 0.5f * (vMax - vMin));
+	diamondSubmesh.Bounds = diamondbounds;
 
 	for (size_t i = 0; i < wedge.Vertices.size(); ++i, ++k)
 	{
 		vertices[k].Pos = wedge.Vertices[i].Position;
 		vertices[k].Normal = wedge.Vertices[i].Normal;
 		vertices[k].TexC = wedge.Vertices[i].TexC;
+		XMVECTOR P = XMLoadFloat3(&vertices[k].Pos);
+
+		vMin = XMVectorMin(vMin, P);
+		vMax = XMVectorMax(vMax, P);
 	}
+
+	BoundingBox wedgebounds;
+	XMStoreFloat3(&wedgebounds.Center, 0.5f * (vMin + vMax));
+	XMStoreFloat3(&wedgebounds.Extents, 0.5f * (vMax - vMin));
+	wedgeSubmesh.Bounds = wedgebounds;
 
 	for (size_t i = 0; i < torus.Vertices.size(); ++i, ++k)
 	{
 		vertices[k].Pos = torus.Vertices[i].Position;
 		vertices[k].Normal = torus.Vertices[i].Normal;
 		vertices[k].TexC = torus.Vertices[i].TexC;
-	}
+		XMVECTOR P = XMLoadFloat3(&vertices[k].Pos);
 
+		vMin = XMVectorMin(vMin, P);
+		vMax = XMVectorMax(vMax, P);
+	}
+	BoundingBox torusbounds;
+	XMStoreFloat3(&torusbounds.Center, 0.5f * (vMin + vMax));
+	XMStoreFloat3(&torusbounds.Extents, 0.5f * (vMax - vMin));
+	torusSubmesh.Bounds = torusbounds;
 
 	std::vector<std::uint16_t> indices;
 
@@ -1780,11 +1946,11 @@ void CastleDesign::BuildMaterials()
 void CastleDesign::BuildRenderItems()
 {
 	auto gridRitem = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&gridRitem->World, XMMatrixScaling(1.5f, 0.5f, 1.5f) * XMMatrixRotationRollPitchYaw(0.0f, -1.5708f, 0.0f) * XMMatrixTranslation(20.0f, 0.0f, 0.0f));
-	XMStoreFloat4x4(&gridRitem->TexTransform, XMMatrixScaling(5.0f, 5.0f, 1.0f) );
+	XMStoreFloat4x4(&gridRitem->World, XMMatrixScaling(2.0f, 0.5f, 2.5f) * XMMatrixRotationRollPitchYaw(0.0f, 1.5708f, 0.0f) * XMMatrixTranslation(105.0f, 0.0f, 0.0f));
+	XMStoreFloat4x4(&gridRitem->TexTransform, XMMatrixScaling(10.0f, 15.0f, 1.0f) );
 	gridRitem->ObjCBIndex = 0;
 	gridRitem->Mat = mMaterials["grass"].get();
-	gridRitem->Geo = mGeometries["landGeo"].get();
+	gridRitem->Geo = mGeometries["landGeo"].get();	
 	gridRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	gridRitem->IndexCount = gridRitem->Geo->DrawArgs["grid"].IndexCount;
 	gridRitem->StartIndexLocation = gridRitem->Geo->DrawArgs["grid"].StartIndexLocation;
@@ -1912,7 +2078,6 @@ void CastleDesign::BuildRenderItems()
 	boxRitem6->BaseVertexLocation = boxRitem6->Geo->DrawArgs["box"].BaseVertexLocation;
 	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(boxRitem6.get());
 	mAllRitems.push_back(std::move(boxRitem6));
-
 
 	//****************************************************
 
@@ -2545,9 +2710,9 @@ void CastleDesign::BuildRenderItems()
 
 	++objCBIndex;
 	auto wavesRitem = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&wavesRitem->World, XMMatrixScaling(1.6f, 0.6f, 1.6f)* XMMatrixTranslation(20.0f, -3.0f, 0.0f));
+	XMStoreFloat4x4(&wavesRitem->World, XMMatrixScaling(2.5f, 0.6f, 2.5f)* XMMatrixTranslation(20.0f, -3.0f, 0.0f));
 
-	XMStoreFloat4x4(&wavesRitem->TexTransform, XMMatrixScaling(5.0f, 5.0f, 1.0f));
+	XMStoreFloat4x4(&wavesRitem->TexTransform, XMMatrixScaling(7.0f, 7.0f, 1.0f));
 	wavesRitem->ObjCBIndex = objCBIndex;
 	wavesRitem->Mat = mMaterials["water"].get();
 	wavesRitem->Geo = mGeometries["waterGeo"].get();
@@ -2576,7 +2741,7 @@ void CastleDesign::BuildRenderItems()
 	mRitemLayer[(int)RenderLayer::AlphaTestedTreeSprites].push_back(treeSpritesRitem.get());
 	mAllRitems.push_back(std::move(wavesRitem));
 	mAllRitems.push_back(std::move(treeSpritesRitem));
-
+	
 	++objCBIndex;
 	auto coneRitem2 = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&coneRitem2->World, XMMatrixScaling(0.7f, 7.5f, 2.5f)* XMMatrixRotationRollPitchYaw(0.0f, 1.5708f, 0.0f)* XMMatrixTranslation(0.0f, 15.5f, -3.0f));
@@ -2600,29 +2765,35 @@ void CastleDesign::BuildRenderItems()
 		{
 		case 0:
 			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(1.0f, 6.0f, 80.0f) * XMMatrixTranslation(-20.0f, -3.01f, 0.0f));
+			XMStoreFloat4x4(&outsideBox->TexTransform, XMMatrixScaling(15.0f, 1.0f, 1.0f));
 			break;
 		case 1:
-			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(85.0f, 6.0f, 10.0f) * XMMatrixTranslation(60.0f, -3.01f, 0.0f));
+			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(95.0f, 6.0f, 10.0f) * XMMatrixTranslation(65.0f, -3.01f, 0.0f));
+			XMStoreFloat4x4(&outsideBox->TexTransform, XMMatrixScaling(15.0f, 1.0f, 1.0f));
 			break;
 		case 2:
-			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(85.0f, 9.0f, 1.0f) * XMMatrixTranslation(60.0f, -3.01f, 5.0f));
+			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(100.0f, 7.5f, 1.0f) * XMMatrixTranslation(66.0f, -3.01f, 5.0f));
+			XMStoreFloat4x4(&outsideBox->TexTransform, XMMatrixScaling(15.0f, 0.5f, 1.0f));
 			break;
 		case 3:
-			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(85.0f, 9.0f, 1.0f) * XMMatrixTranslation(60.0f, -3.01f, -5.0f));
+			XMStoreFloat4x4(&outsideBox->World, XMMatrixScaling(100.0f, 7.5f, 1.0f) * XMMatrixTranslation(66.0f, -3.01f, -5.0f));
+			XMStoreFloat4x4(&outsideBox->TexTransform, XMMatrixScaling(15.0f, 0.5f, 1.0f));
 			break;
 		}
 		
-		XMStoreFloat4x4(&outsideBox->TexTransform, XMMatrixScaling(7.0f, 3.0f, 1.0f));
+		
 		outsideBox->ObjCBIndex = objCBIndex++;
 
 		outsideBox->Geo = mGeometries["shapeGeo"].get();
-		outsideBox->Mat = mMaterials["grass"].get();
+		outsideBox->Mat = mMaterials["bricks0"].get();
 		outsideBox->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		
 		outsideBox->IndexCount = outsideBox->Geo->DrawArgs["box"].IndexCount;
-
+		
+		outsideBox->Bounds = outsideBox->Geo->DrawArgs["box"].Bounds;
+		XMMATRIX temp = XMLoadFloat4x4(&outsideBox->World);
+		outsideBox->Bounds.Transform(outsideBox->Bounds, temp);
+		
 		outsideBox->StartIndexLocation = outsideBox->Geo->DrawArgs["box"].StartIndexLocation;
-
 		outsideBox->BaseVertexLocation = outsideBox->Geo->DrawArgs["box"].BaseVertexLocation;
 		mRitemLayer[(int)RenderLayer::AlphaTested].push_back(outsideBox.get());
 		mAllRitems.push_back(std::move(outsideBox));
@@ -2650,7 +2821,7 @@ void CastleDesign::BuildRenderItems()
 	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(door.get());
 	mAllRitems.push_back(std::move(door));
 
-
+    
 	for (auto row = 0; row < tileMapWidth; ++row)
 	{
 		for (auto col = 0; col < tileMapHeight; ++col)
@@ -2658,12 +2829,14 @@ void CastleDesign::BuildRenderItems()
 			if(tilemap[row][col] != '0')
 				++objCBIndex;
 			TileMapDrawing(tilemap[row][col], row*4, 0, col*4, objCBIndex);
+			if (row == 39 && col == 1)
+			{
+				mCamera.SetPosition(124.0f + row * 4, 1, col * 4 - 34.0f);
+				mCamera.RotateY(-1.5708);
+			}
 		}
 	}
-	++objCBIndex;
 	
-
-
 
 }
 
@@ -2711,16 +2884,17 @@ void CastleDesign::TileMapDrawing(char key, float offsetX, float offsetY, float 
 		auto boxRitem = std::make_unique<RenderItem>();
 
 		XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(4.0f, 10.0f, 4.0f) *
-			XMMatrixTranslation(89.0f + offsetX, 5.0f + offsetY, offsetZ -35.0f));
+			XMMatrixTranslation(114.0f + offsetX, 5.0f + offsetY, offsetZ -34.0f));
 
 		boxRitem->ObjCBIndex = index;
 
 		boxRitem->Geo = mGeometries["shapeGeo"].get();
 		boxRitem->Mat = mMaterials["bricks0"].get();
 		boxRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-
 		boxRitem->IndexCount = boxRitem->Geo->DrawArgs["box"].IndexCount;
-
+		boxRitem->Bounds = boxRitem->Geo->DrawArgs["box"].Bounds;
+		XMMATRIX temp = XMLoadFloat4x4(&boxRitem->World);
+		boxRitem->Bounds.Transform(boxRitem->Bounds, temp);
 		boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs["box"].StartIndexLocation;
 
 		boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
