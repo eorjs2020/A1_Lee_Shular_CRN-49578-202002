@@ -286,7 +286,8 @@ void CastleDesign::Update(const GameTimer& gt)
 	UpdateMainPassCB(gt);
     UpdateWaves(gt);
 	//To lock Y position and allow the camera to change pitch
-	mCamera.SetPosition({mCamera.GetPosition3f().x,2.0f,mCamera.GetPosition3f().z});
+	if(!mCollision)
+		mCamera.SetPosition({mCamera.GetPosition3f().x,2.0f,mCamera.GetPosition3f().z});
 	
 }
 
@@ -419,7 +420,9 @@ void CastleDesign::OnKeyboardInput(const GameTimer& gt)
 
 	if (GetAsyncKeyState('D') & 0x8000 && !CollisionDetection('D', 10.0f * dt))
 		mCamera.Strafe(10.0f * dt);
-	
+
+	if (GetKeyState('1') & 0x8000)
+		mCollision = !mCollision;
 
 	mCamera.UpdateViewMatrix();
 	// Making Switching system with keyboard 1.
@@ -431,49 +434,53 @@ void CastleDesign::OnKeyboardInput(const GameTimer& gt)
 
 bool CastleDesign::CollisionDetection(char type, float d)
 {
-	char a = type;
-	XMFLOAT3 temp;
-	XMVECTOR s;
-	XMVECTOR l;
-	XMVECTOR p;
-	XMVECTOR r;
-	switch (a) 
+	if (!mCollision)
 	{
-	case 'W':
-		s = XMVectorReplicate(d);
-		l = XMLoadFloat3(&mCamera.GetLook3f());
-		p = XMLoadFloat3(&mCamera.GetPosition3f());
-		XMStoreFloat3(&temp, XMVectorMultiplyAdd(s, l, p));				
-		break;
-	case 'S':
-		s = XMVectorReplicate(d);
-		l = XMLoadFloat3(&mCamera.GetLook3f());
-		p = XMLoadFloat3(&mCamera.GetPosition3f());
-		XMStoreFloat3(&temp, XMVectorMultiplyAdd(s, l, p));
-		break;
-	case 'A':
-		s = XMVectorReplicate(d);
-		r = XMLoadFloat3(&mCamera.GetRight3f());
-		p = XMLoadFloat3(&mCamera.GetPosition3f());
-		XMStoreFloat3(&temp, XMVectorMultiplyAdd(s, r, p));
-		break;
-	case 'D':
-		s = XMVectorReplicate(d);
-		r = XMLoadFloat3(&mCamera.GetRight3f());
-		p = XMLoadFloat3(&mCamera.GetPosition3f());
-		XMStoreFloat3(&temp, XMVectorMultiplyAdd(s, r, p));
-		break;
-
-	}
-	for (auto& e : mAllRitems)
-	{
-		XMVECTOR rt = XMLoadFloat3(&XMFLOAT3(temp.x + 1.5f, temp.y + 1.5f, temp.z + 1.0f));
-		XMVECTOR ld = XMLoadFloat3(&XMFLOAT3(temp.x - 1.5f, temp.y - 1.5f, temp.z - 0.5f));
-		BoundingBox::CreateFromPoints(mCamBound, rt, ld);
-		if (mCamBound.Contains(e->Bounds) != DirectX::DISJOINT)
+		char a = type;
+		XMFLOAT3 temp;
+		XMVECTOR s;
+		XMVECTOR l;
+		XMVECTOR p;
+		XMVECTOR r;
+		switch (a)
 		{
-			return true;
+		case 'W':
+			s = XMVectorReplicate(d);
+			l = XMLoadFloat3(&mCamera.GetLook3f());
+			p = XMLoadFloat3(&mCamera.GetPosition3f());
+			XMStoreFloat3(&temp, XMVectorMultiplyAdd(s, l, p));
+			break;
+		case 'S':
+			s = XMVectorReplicate(d);
+			l = XMLoadFloat3(&mCamera.GetLook3f());
+			p = XMLoadFloat3(&mCamera.GetPosition3f());
+			XMStoreFloat3(&temp, XMVectorMultiplyAdd(s, l, p));
+			break;
+		case 'A':
+			s = XMVectorReplicate(d);
+			r = XMLoadFloat3(&mCamera.GetRight3f());
+			p = XMLoadFloat3(&mCamera.GetPosition3f());
+			XMStoreFloat3(&temp, XMVectorMultiplyAdd(s, r, p));
+			break;
+		case 'D':
+			s = XMVectorReplicate(d);
+			r = XMLoadFloat3(&mCamera.GetRight3f());
+			p = XMLoadFloat3(&mCamera.GetPosition3f());
+			XMStoreFloat3(&temp, XMVectorMultiplyAdd(s, r, p));
+			break;
+
 		}
+		for (auto& e : mAllRitems)
+		{
+			XMVECTOR rt = XMLoadFloat3(&XMFLOAT3(temp.x + 1.5f, temp.y + 1.5f, temp.z + 1.0f));
+			XMVECTOR ld = XMLoadFloat3(&XMFLOAT3(temp.x - 1.5f, temp.y - 1.5f, temp.z - 0.5f));
+			BoundingBox::CreateFromPoints(mCamBound, rt, ld);
+			if (mCamBound.Contains(e->Bounds) != DirectX::DISJOINT)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 	return false;
 }
